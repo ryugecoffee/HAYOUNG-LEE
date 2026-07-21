@@ -123,21 +123,45 @@
     background:radial-gradient(closest-side, rgba(120,78,26,.42), rgba(90,58,20,.14) 55%, transparent 72%);
     filter:blur(6px);}
   .guitar-stage{
-    position:relative;width:clamp(230px,34vh,420px);aspect-ratio:400/1000;
+    /* ==== 植物版ギターの位置合わせ（画像を見ながらここだけ調整すればOK）====
+       --vine-scale     : 植物版の拡大率（1で等倍）
+       --vine-offset-x  : 植物版の横ずれ補正（右+ / 左-）
+       --vine-offset-y  : 植物版の縦ずれ補正（下+ / 上-）
+       --mask-radius    : カーソル円の半径（px）
+    ============================================================ */
+    --vine-scale: 1.06;
+    --vine-offset-x: 0px;
+    --vine-offset-y: 26px;
+    --mask-radius: 160px;
+    position:relative;
+    height:clamp(360px,76vh,820px);
+    aspect-ratio:685/1793;          /* = 通常版ギター画像の縦横比 */
+    width:auto;margin:0 auto;
     filter:drop-shadow(0 40px 60px rgba(0,0,0,.6));
-    touch-action:pan-y;
+    touch-action:pan-y;             /* 縦スクロールを妨げない */
   }
   .guitar-layer{position:absolute;inset:0;width:100%;height:100%}
   .guitar-fantasy{
-    /* 幻想版は円形マスクでカーソル周辺だけ見せる。初期は完全非表示。 */
+    /* 円形 radial-gradient マスク。--mask-r=0px（初期／離脱時）で完全非表示。
+       0〜45%: 完全表示 / 45〜70%: 徐々に薄く / 70〜100%: 完全透明（硬い境界なし）。*/
     -webkit-mask-image:radial-gradient(circle var(--mask-r,0px) at var(--mx,50%) var(--my,50%),
-      #000 0%, #000 42%, rgba(0,0,0,.35) 68%, transparent 100%);
+      #000 0%, #000 45%, rgba(0,0,0,.5) 70%, transparent 100%);
     mask-image:radial-gradient(circle var(--mask-r,0px) at var(--mx,50%) var(--my,50%),
-      #000 0%, #000 42%, rgba(0,0,0,.35) 68%, transparent 100%);
-    opacity:var(--fantasy-op,1);
-    will-change:mask-image;
+      #000 0%, #000 45%, rgba(0,0,0,.5) 70%, transparent 100%);
+    will-change:mask-position,mask-image;
   }
-  .guitar-img{width:100%;height:100%;object-fit:contain;display:block}
+  .guitar-img{
+    width:100%;height:100%;object-fit:contain;display:block;
+    pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;
+  }
+  /* 植物版だけ位置微調整を適用（マスクは親に掛かるのでカーソル追従はズレない） */
+  .guitar-fantasy .guitar-img{
+    transform:translate(var(--vine-offset-x,0px),var(--vine-offset-y,0px)) scale(var(--vine-scale,1));
+    transform-origin:center center;
+  }
+  @media (max-width:640px){
+    .guitar-stage{ height:auto; width:min(80vw,340px); }
+  }
   .hint{
     position:absolute;left:50%;bottom:-34px;transform:translateX(-50%);
     font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--ink-faint);
@@ -320,11 +344,9 @@
 
   <div class="stage-wrap">
     <div class="guitar-stage" id="stage" aria-label="Classical guitar">
-      <!-- 幻想版（下に置いても良いが、マスクで上に重ねる） -->
-      <div class="fx-layer" id="fxLayer"></div>
-      <!-- 通常ギター -->
+      <!-- 通常ギター（下・常時表示） -->
       <div class="guitar-layer guitar-normal" id="gNormal"></div>
-      <!-- 幻想ギター（円形マスク） -->
+      <!-- 植物ギター（上・円形マスクでカーソル周辺だけ表示） -->
       <div class="guitar-layer guitar-fantasy" id="gFantasy"></div>
       <div class="hint" data-i18n="hero.hint">Trace the guitar slowly</div>
     </div>
@@ -418,23 +440,14 @@
   © <span id="year"></span> Hayoung Lee · Classical Guitarist
 </footer>
 
-<!-- sound toggle -->
-<button class="sound-toggle" id="soundToggle" aria-pressed="false">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
-    <path d="M4 9v6h4l5 4V5L8 9H4z"/>
-    <g class="on-wave"><path d="M16 9a4 4 0 0 1 0 6"/><path d="M18.5 7a7 7 0 0 1 0 10"/></g>
-  </svg>
-  <span id="soundLabel" data-i18n="sound.off">Sound Off</span>
-</button>
-
 <script>
 /* =========================================================================
    CONFIG — 差し替えはここだけ触ればOK
    ========================================================================= */
 const CONFIG = {
   assets:{
-    guitarNormal:"", // 例: "assets/guitar-normal.webp" （空ならSVGプレースホルダー）
-    guitarFantasy:"",// 例: "assets/guitar-fantasy.webp"
+    guitarNormal:"assets/guitar-normal.png", // 通常版ギター（背景透過PNG）
+    guitarFantasy:"assets/guitar-vine.png",  // 植物版ギター（背景透過PNG・マスクで表示）
     magpie:"",       // 例: "assets/magpie.png"
     portrait:"",     // 例: "assets/hayoung.webp"
   },
@@ -675,12 +688,14 @@ const isTouch = matchMedia("(hover:none), (pointer:coarse)").matches;
 document.getElementById("year").textContent = "2026";
 
 /* ---- guitar layers: image if provided, else SVG ---- */
-function setLayer(el, imgPath, svgFn){
-  if(imgPath){ el.innerHTML = `<img class="guitar-img" src="${imgPath}" alt="" loading="eager">`; }
+function setLayer(el, imgPath, svgFn, alt){
+  const a = alt || "";
+  const deco = a ? "" : ' aria-hidden="true"';
+  if(imgPath){ el.innerHTML = `<img class="guitar-img" src="${imgPath}" alt="${a}"${deco} draggable="false" loading="eager">`; }
   else{ el.innerHTML = svgFn(); }
 }
-setLayer($("#gNormal"),  CONFIG.assets.guitarNormal,  guitarNormalSVG);
-setLayer($("#gFantasy"), CONFIG.assets.guitarFantasy, guitarFantasySVG);
+setLayer($("#gNormal"),  CONFIG.assets.guitarNormal,  guitarNormalSVG,  "Classical guitar");
+setLayer($("#gFantasy"), CONFIG.assets.guitarFantasy, guitarFantasySVG, ""); // 装飾扱い
 
 /* portrait */
 if(CONFIG.assets.portrait){ $("#portrait").innerHTML=`<img src="${CONFIG.assets.portrait}" alt="Hayoung Lee" loading="lazy">`; }
@@ -735,7 +750,6 @@ function applyLang(lang){
   });
   $$(".lang button").forEach(b=>b.classList.toggle("active", b.dataset.lang===lang));
   renderConcerts(t);
-  updateSoundLabel();
 }
 $$(".lang button").forEach(b=>b.addEventListener("click",()=>applyLang(b.dataset.lang)));
 
@@ -767,367 +781,89 @@ const io=new IntersectionObserver((es)=>es.forEach(en=>{ if(en.isIntersecting){e
 $$(".reveal").forEach(el=>io.observe(el));
 
 /* =========================================================================
-   AUDIO — Web Audio (Karplus-Strong) with unlock + toggle
+   GuitarReveal — カーソル追従の円形マスクで植物版ギターを見せる（マスク実装のみ）
+   責務: 2枚の画像表示 / ポインタ座標取得 / マスク制御 / pointerイベント
+   ・初期は通常版のみ（--mask-r:0）
+   ・ギターコンテナ内部でのみ反応（背景・文字・ナビは非連動）
+   ・離脱で植物版は完全に消える
    ========================================================================= */
-const Audio_={ ctx:null, master:null, reverb:null, buffers:[], enabled:false, active:0, srcEls:[] };
-function buildReverbIR(ctx, seconds=0.9, decay=3.2){
-  const rate=ctx.sampleRate, len=Math.floor(rate*seconds);
-  const buf=ctx.createBuffer(2,len,rate);
-  for(let ch=0;ch<2;ch++){ const d=buf.getChannelData(ch);
-    for(let i=0;i<len;i++){ d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay); } }
-  return buf;
-}
-function ksBuffer(ctx, freq, dur=1.6){
-  const rate=ctx.sampleRate, N=Math.max(2,Math.round(rate/freq));
-  const out=ctx.createBuffer(1,Math.floor(rate*dur),rate);
-  const d=out.getChannelData(0);
-  const line=new Float32Array(N);
-  for(let i=0;i<N;i++) line[i]=Math.random()*2-1;
-  let idx=0; const damp=0.9965;
-  for(let i=0;i<d.length;i++){
-    const cur=line[idx], nxt=line[(idx+1)%N];
-    const v=(cur+nxt)*0.5*damp;
-    d[i]=cur*Math.pow(1-i/d.length,0.6);
-    line[idx]=v; idx=(idx+1)%N;
+(function GuitarReveal(){
+  const stage   = $("#stage");
+  const fantasy = $("#gFantasy");            // 植物版レイヤー（マスク適用対象）
+  const hero    = document.getElementById("home");
+  if(!stage || !fantasy) return;
+
+  // マスク半径は CSS(.guitar-stage --mask-radius) から取得。1か所で調整可。
+  const cssR = parseFloat(getComputedStyle(stage).getPropertyValue("--mask-radius"));
+  const MASK_R = isFinite(cssR) && cssR>0 ? cssR : 160;
+  const reduce = reduceMotion;               // prefers-reduced-motion
+  const EASE   = 0.18;                        // 追従の滑らかさ（≈0.12–0.18s の遅れ）
+
+  const s = { x:0, y:0, tx:0, ty:0, r:0, tr:0, active:false, seeded:false, raf:0 };
+
+  function apply(){
+    fantasy.style.setProperty("--mx", s.x.toFixed(1)+"px");
+    fantasy.style.setProperty("--my", s.y.toFixed(1)+"px");
+    fantasy.style.setProperty("--mask-r", s.r.toFixed(1)+"px");
   }
-  return out;
-}
-async function initAudio(){
-  if(Audio_.ctx) return;
-  const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
-  const ctx=new AC(); Audio_.ctx=ctx;
-  const master=ctx.createGain(); master.gain.value=CONFIG.audio.masterVolume;
-  const conv=ctx.createConvolver(); conv.buffer=buildReverbIR(ctx);
-  const wet=ctx.createGain(); wet.gain.value=0.18;
-  const dry=ctx.createGain(); dry.gain.value=0.9;
-  master.connect(dry).connect(ctx.destination);
-  master.connect(conv).connect(wet).connect(ctx.destination);
-  Audio_.master=master;
-  // preload real samples if provided, else synth
-  Audio_.buffers = await Promise.all(CONFIG.audio.frequencies.map(async (f,i)=>{
-    const url=CONFIG.audio.strings[i];
-    if(url){ try{ const r=await fetch(url); const ab=await r.arrayBuffer(); return await ctx.decodeAudioData(ab);}catch(e){} }
-    return ksBuffer(ctx,f);
-  }));
-}
-function pluck(i, velocity=0.5){
-  const A=Audio_; if(!A.enabled||!A.ctx||!A.buffers[i]) return;
-  if(A.active>=6) return;
-  const src=A.ctx.createBufferSource(); src.buffer=A.buffers[i];
-  const g=A.ctx.createGain();
-  const v=Math.max(0.12,Math.min(1,velocity));
-  g.gain.value=0.0001;
-  const now=A.ctx.currentTime;
-  g.gain.setValueAtTime(0.0001,now);
-  g.gain.exponentialRampToValueAtTime(0.4*v+0.12, now+0.008);
-  src.connect(g).connect(A.master);
-  src.start(); A.active++;
-  src.onended=()=>{A.active=Math.max(0,A.active-1);};
-}
-function updateSoundLabel(){
-  const t=I18N[currentLang]||I18N.en;
-  $("#soundLabel").textContent = Audio_.enabled? t["sound.on"] : t["sound.off"];
-}
-const soundBtn=$("#soundToggle");
-soundBtn.addEventListener("click", async ()=>{
-  await initAudio();
-  if(Audio_.ctx && Audio_.ctx.state==="suspended") await Audio_.ctx.resume();
-  Audio_.enabled=!Audio_.enabled;
-  soundBtn.classList.toggle("on",Audio_.enabled);
-  soundBtn.setAttribute("aria-pressed",String(Audio_.enabled));
-  updateSoundLabel();
-});
-
-/* =========================================================================
-   HERO INTERACTION — cursor mask, strings, fantasy intensity, magpie
-   ========================================================================= */
-const stage=$("#stage");
-const fantasy=$("#gFantasy");
-const hero=$("#home");
-const fxLayer=$("#fxLayer");
-
-const state={
-  mx:50,my:50,       // mask position in %
-  tx:50,ty:50,       // target in %
-  inside:false,
-  maskR:0, maskRTarget:0,
-  intensity:0,       // 0..1 fantasy accumulation
-  lastX:0,lastY:0,lastT:0,speed:0,
-  onString:new Array(6).fill(false),
-  magpieBusy:false, magpieCooldown:0,
-  petals:[], sparks:[],
-};
-
-// geometry helpers in stage-local px (viewBox 400x1000 mapped to element)
-function stageMetrics(){
-  const r=stage.getBoundingClientRect();
-  return {r, sx:r.width/400, sy:r.height/1000};
-}
-function pointFromEvent(clientX,clientY){
-  const {r}=stageMetrics();
-  return {px:(clientX-r.left)/r.width*400, py:(clientY-r.top)/r.height*1000,
-          pctX:(clientX-r.left)/r.width*100, pctY:(clientY-r.top)/r.height*100, r};
-}
-// is a viewBox point roughly within guitar silhouette (body+neck+head)
-function inGuitar(px,py){
-  if(px<150 && py<430) return false;
-  // neck/head band
-  if(py<430) return px>150 && px<250;
-  // body bounding (approx ellipse of the two bouts)
-  const bx=200, by=694, rx=175, ry=270;
-  return ((px-bx)**2)/(rx*rx) + ((py-by)**2)/(ry*ry) <= 1.03;
-}
-
-/* pointer handling */
-function onMove(clientX,clientY){
-  const p=pointFromEvent(clientX,clientY);
-  const now=performance.now();
-  const dt=Math.max(1, now-state.lastT);
-  const dist=Math.hypot(clientX-state.lastX, clientY-state.lastY);
-  state.speed = dist/dt*16; // ~px per frame
-  state.lastX=clientX; state.lastY=clientY; state.lastT=now;
-
-  const inside = inGuitar(p.px,p.py);
-  state.inside=inside;
-  if(inside){
-    state.tx=p.pctX; state.ty=p.pctY;
-    hero.classList.add("touched");
-    // slow movement -> stronger reveal + intensity growth
-    const slow = state.speed<7;
-    state.maskRTarget = slow? 190 : 96;
-    if(slow) state.intensity=Math.min(1,state.intensity+0.018);
-    else state.intensity=Math.min(1,state.intensity+0.004);
-    // occasionally emit petals/sparks when slow
-    if(slow && !reduceMotion && Math.random()<0.16) emitParticle(p.px,p.py);
-    // strings
-    checkStrings(p.px,p.py);
-    // magpie trigger near soundhole + high intensity
-    const nearHole = Math.hypot(p.px-200,p.py-SOUND_CY) < SOUND_R+26;
-    if((state.intensity>0.72 || (nearHole && slow && state.intensity>0.5)) && !state.magpieBusy && now>state.magpieCooldown){
-      triggerMagpie();
-    }
-  }else{
-    state.maskRTarget=0;
-    state.onString.fill(false);
+  function tick(){
+    const e  = reduce ? 1 : EASE;
+    s.x += (s.tx - s.x) * e;
+    s.y += (s.ty - s.y) * e;
+    const re = reduce ? 1 : (s.tr>0 ? 0.24 : 0.12);   // 表示は速く / 消えるのは緩やかに
+    s.r += (s.tr - s.r) * re;
+    apply();
+    const moving = Math.abs(s.r-s.tr)>0.3 || Math.abs(s.x-s.tx)>0.3 || Math.abs(s.y-s.ty)>0.3;
+    if(moving || s.tr>0){ s.raf = requestAnimationFrame(tick); }
+    else { s.raf = 0; s.r = s.tr; apply(); }
   }
-}
-function onLeave(){ state.inside=false; state.maskRTarget=0; state.onString.fill(false); }
+  function ensure(){ if(!s.raf) s.raf = requestAnimationFrame(tick); }
 
-if(!isTouch){
-  stage.addEventListener("mousemove",e=>onMove(e.clientX,e.clientY));
-  stage.addEventListener("mouseleave",onLeave);
-}else{
-  // touch: horizontal / on-guitar traces = interaction; vertical swipe scrolls
-  let startX=0,startY=0,decided=null;
-  stage.addEventListener("touchstart",e=>{
-    const t=e.touches[0]; startX=t.clientX; startY=t.clientY; decided=null;
-    state.lastX=t.clientX; state.lastY=t.clientY; state.lastT=performance.now();
-  },{passive:true});
-  stage.addEventListener("touchmove",e=>{
+  function toLocal(clientX, clientY){
+    const b = stage.getBoundingClientRect();
+    return { x: clientX - b.left, y: clientY - b.top };
+  }
+  function enter(){
+    s.active = true; s.tr = MASK_R;
+    hero && hero.classList.add("touched");
+    ensure();
+  }
+  function move(clientX, clientY){
+    if(!s.active) return;
+    const p = toLocal(clientX, clientY);
+    s.tx = p.x; s.ty = p.y;
+    if(!s.seeded){ s.x = p.x; s.y = p.y; s.seeded = true; }  // 初回はワープさせずその場で開く
+    if(reduce){ s.x = p.x; s.y = p.y; }
+    ensure();
+  }
+  function leave(){ s.active = false; s.tr = 0; s.seeded = false; ensure(); }
+
+  /* ---- PC: pointer イベント（マウスのみ） ---- */
+  stage.addEventListener("pointerenter", e=>{ if(e.pointerType==="mouse"){ enter(); move(e.clientX,e.clientY); } });
+  stage.addEventListener("pointermove",  e=>{ if(e.pointerType==="mouse"){ if(!s.active) enter(); move(e.clientX,e.clientY); } });
+  stage.addEventListener("pointerleave", e=>{ if(e.pointerType==="mouse"){ leave(); } });
+
+  /* ---- スマホ: 指でなぞった所だけ表示。縦スワイプはスクロール優先（touch-action:pan-y） ---- */
+  let sx=0, sy=0, mode=null;
+  stage.addEventListener("touchstart", e=>{ const t=e.touches[0]; sx=t.clientX; sy=t.clientY; mode=null; }, {passive:true});
+  stage.addEventListener("touchmove", e=>{
     const t=e.touches[0];
-    if(decided===null){
-      const dx=Math.abs(t.clientX-startX), dy=Math.abs(t.clientY-startY);
-      if(dx>dy+4) decided="trace"; else if(dy>dx+4) decided="scroll";
+    if(mode===null){
+      const dx=Math.abs(t.clientX-sx), dy=Math.abs(t.clientY-sy);
+      if(dx>dy+4) mode="trace"; else if(dy>dx+4) mode="scroll";
     }
-    if(decided==="trace"){ e.preventDefault(); onMove(t.clientX,t.clientY); }
-  },{passive:false});
-  stage.addEventListener("touchend",()=>{ onLeave(); },{passive:true});
-  // long-press strengthens
-  let lp=null;
-  stage.addEventListener("touchstart",()=>{ lp=setTimeout(()=>{ state.intensity=Math.min(1,state.intensity+0.4);},550); },{passive:true});
-  stage.addEventListener("touchend",()=>{ clearTimeout(lp); });
-}
+    if(mode==="trace"){ e.preventDefault(); if(!s.active) enter(); move(t.clientX,t.clientY); }
+  }, {passive:false});
+  stage.addEventListener("touchend", ()=>{ if(mode==="trace") leave(); }, {passive:true});
 
-/* strings: play when cursor crosses (off->on transition) */
-function checkStrings(px,py){
-  if(py<NUT_Y-6 || py>BRIDGE_Y+6) { state.onString.fill(false); return; }
-  const tt=(py-NUT_Y)/(BRIDGE_Y-NUT_Y);
-  for(let i=0;i<6;i++){
-    const xAt = strNutX(i) + (strBridgeX(i)-strNutX(i))*tt;
-    const on = Math.abs(px-xAt) < 5.2;
-    if(on && !state.onString[i]){
-      pluck(i, 0.35 + Math.min(0.6, state.speed/24));
-      vibrateString(i);
-    }
-    state.onString[i]=on;
-  }
-}
+  apply();  // 初期状態を確定（--mask-r:0 → 植物版は完全に非表示）
+})();
 
-/* string vibration overlay (drawn on fantasy+normal via a light svg line flash) */
-let stringFlash=null;
-function ensureStringFlash(){
-  if(stringFlash) return stringFlash;
-  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
-  svg.setAttribute("viewBox",VIEWBOX); svg.setAttribute("preserveAspectRatio","xMidYMid meet");
-  Object.assign(svg.style,{position:"absolute",inset:"0",width:"100%",height:"100%",pointerEvents:"none",zIndex:"3"});
-  for(let i=0;i<6;i++){
-    const ln=document.createElementNS("http://www.w3.org/2000/svg","line");
-    ln.setAttribute("x1",strNutX(i)); ln.setAttribute("y1",NUT_Y);
-    ln.setAttribute("x2",strBridgeX(i)); ln.setAttribute("y2",BRIDGE_Y);
-    ln.setAttribute("stroke","rgba(240,225,180,.75)"); ln.setAttribute("stroke-width",0.8+i*0.18);
-    ln.style.opacity="0.35"; ln.dataset.i=i;
-    svg.appendChild(ln);
-  }
-  stage.appendChild(svg); stringFlash=svg; return svg;
-}
-ensureStringFlash();
-function vibrateString(i){
-  if(reduceMotion) return;
-  const ln=stringFlash.children[i];
-  ln.animate([
-    {opacity:.9, filter:"drop-shadow(0 0 3px rgba(255,235,180,.9))"},
-    {opacity:.35, filter:"none"}
-  ],{duration:420,easing:"ease-out"});
-  // little lateral shimmer
-  const mid= (NUT_Y+BRIDGE_Y)/2;
-  ln.animate([
-    {transform:"translateX(0)"},{transform:"translateX(1.6px)"},{transform:"translateX(-1.2px)"},{transform:"translateX(0)"}
-  ],{duration:220,iterations:2,easing:"ease-in-out"});
-}
-
-/* particles: petals + gold sparks, limited count */
-function emitParticle(px,py){
-  const MAXP = isTouch?10:22;
-  if(state.petals.length+state.sparks.length > MAXP) return;
-  const petal = Math.random()<0.5;
-  const el=document.createElement("div");
-  const {sx,sy}=stageMetrics();
-  const x=px, y=py;
-  if(petal){
-    el.className="petal";
-    const col=["#e8756b","#e3a1b0","#f4ede0","#c2447a"][Math.floor(Math.random()*4)];
-    el.innerHTML=`<svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 0 C10 4 10 10 7 14 C4 10 4 4 7 0Z" fill="${col}"/></svg>`;
-    state.petals.push(spawn(el,x,y,true));
-  }else{
-    el.className="spark";
-    el.innerHTML=`<svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="2.4" fill="#f6d878"/></svg>`;
-    state.sparks.push(spawn(el,x,y,false));
-  }
-}
-function spawn(el,vx,vy,isPetal){
-  fxLayer.appendChild(el);
-  const dur = isPetal? 2600+Math.random()*1800 : 1600+Math.random()*1200;
-  const driftX=(Math.random()-0.5)*80;
-  const rise = isPetal? 60+Math.random()*90 : 30+Math.random()*60;
-  const {sx,sy}=stageMetrics();
-  // position in element px (fxLayer spans stage with negative inset; use % of 400x1000)
-  el.style.left=(vx/400*100)+"%"; el.style.top=(vy/1000*100)+"%";
-  const anim=el.animate([
-    {transform:`translate(-50%,-50%) translate(0,0) rotate(0deg)`, opacity:0},
-    {opacity:.9, offset:.15},
-    {transform:`translate(-50%,-50%) translate(${driftX}px,${-rise}px) rotate(${(Math.random()-.5)*220}deg)`, opacity:0}
-  ],{duration:dur,easing:"cubic-bezier(.3,.6,.4,1)"});
-  anim.onfinish=()=>{ el.remove(); };
-  return {el,anim};
-}
-
-/* MAGPIE — hidden reward */
-let magpieEl=null;
-function magpieSVG(){
-  if(CONFIG.assets.magpie) return `<img src="${CONFIG.assets.magpie}" alt="magpie" style="width:100%;height:100%;object-fit:contain">`;
-  // stylized magpie: black/white with a hint of iridescent blue
-  return `<svg viewBox="0 0 120 120" width="100%" height="100%">
-    <g>
-      <path d="M60 44 C48 44 40 52 40 62 C40 70 46 76 54 78 L44 96 C52 92 58 86 60 80 C62 86 68 92 76 96 L66 78 C74 76 80 70 80 62 C80 52 72 44 60 44Z" fill="#12100e"/>
-      <path d="M60 46 C67 46 73 51 76 58 L64 66 C60 60 58 54 60 46Z" fill="#f3efe6"/>
-      <ellipse cx="60" cy="40" rx="9" ry="8" fill="#12100e"/>
-      <path d="M69 40 L82 37 L70 44Z" fill="#2a2622"/>
-      <circle cx="63" cy="38" r="1.6" fill="#f6d878"/>
-      <path d="M54 78 C50 92 44 104 34 112" stroke="#12100e" stroke-width="7" fill="none" stroke-linecap="round"/>
-      <path d="M54 78 C51 90 47 100 40 108" stroke="#1a3a5a" stroke-width="2" fill="none" opacity=".6"/>
-    </g>
-  </svg>`;
-}
-function triggerMagpie(){
-  state.magpieBusy=true;
-  // soundhole flash
-  flashSoundhole();
-  // burst of petals from the hole
-  for(let i=0;i<6;i++) setTimeout(()=>emitParticle(200+(Math.random()-.5)*40, SOUND_CY+(Math.random()-.5)*20), i*70);
-  setTimeout(()=>{
-    if(!magpieEl){ magpieEl=document.createElement("div");
-      Object.assign(magpieEl.style,{position:"absolute",width:"22%",aspectRatio:"1/1",zIndex:"7",pointerEvents:"none",left:"58%",top:"6%",opacity:"0",transformOrigin:"center"});
-      magpieEl.innerHTML=magpieSVG(); stage.appendChild(magpieEl);
-    }
-    magpieEl.style.left="58%"; magpieEl.style.top="4%";
-    // appear + perch on shoulder/head area
-    magpieEl.animate([
-      {opacity:0, transform:"translateY(-16px) scale(.7) rotate(-6deg)"},
-      {opacity:1, transform:"translateY(0) scale(1) rotate(0deg)"}
-    ],{duration:reduceMotion?1:900,easing:"cubic-bezier(.2,.7,.3,1)",fill:"forwards"});
-    // small idle bob
-    const idle=magpieEl.animate([{transform:"translateY(0)"},{transform:"translateY(-3px)"},{transform:"translateY(0)"}],{duration:1400,iterations:2,easing:"ease-in-out"});
-    // fly away after a few seconds
-    setTimeout(()=>{
-      const fly=magpieEl.animate([
-        {opacity:1, transform:"translate(0,0) scale(1) rotate(0deg)"},
-        {opacity:0, transform:"translate(120px,-160px) scale(.5) rotate(18deg)"}
-      ],{duration:reduceMotion?1:1400,easing:"cubic-bezier(.4,0,.7,.2)",fill:"forwards"});
-      fly.onfinish=()=>{
-        state.magpieBusy=false;
-        state.magpieCooldown=performance.now()+12000; // 再発生まで少し置く
-        // 幻想もゆっくり引く
-        state.intensity=Math.min(state.intensity,0.5);
-      };
-    }, reduceMotion?1200:3400);
-  }, 520);
-}
-function flashSoundhole(){
-  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
-  svg.setAttribute("viewBox",VIEWBOX);
-  Object.assign(svg.style,{position:"absolute",inset:"0",width:"100%",height:"100%",pointerEvents:"none",zIndex:"6"});
-  const c=document.createElementNS("http://www.w3.org/2000/svg","circle");
-  c.setAttribute("cx",200); c.setAttribute("cy",SOUND_CY); c.setAttribute("r",SOUND_R-4);
-  c.setAttribute("fill","rgba(255,240,190,.8)");
-  svg.appendChild(c); stage.appendChild(svg);
-  c.animate([{opacity:0,r:SOUND_R-20},{opacity:1,offset:.3},{opacity:0}],{duration:1400,easing:"ease-out"}).onfinish=()=>svg.remove();
-}
-
-/* =========================================================================
-   RAF loop — ease mask + intensity, drive fantasy visuals
-   ========================================================================= */
-function lerp(a,b,n){return a+(b-a)*n;}
-function loop(){
-  // ease mask position (0.15–0.3s lag ≈ factor ~0.14)
-  state.mx=lerp(state.mx,state.tx,0.14);
-  state.my=lerp(state.my,state.ty,0.14);
-  // ease mask radius; when leaving, shrink slowly (~0.8–1.5s)
-  const rSpeed = state.maskRTarget>0 ? 0.16 : 0.04;
-  state.maskR=lerp(state.maskR,state.maskRTarget,rSpeed);
-  // intensity decays when not adding
-  if(!state.inside || state.speed>7) state.intensity=Math.max(0,state.intensity-0.006);
-
-  fantasy.style.setProperty("--mx",state.mx+"%");
-  fantasy.style.setProperty("--my",state.my+"%");
-  fantasy.style.setProperty("--mask-r",state.maskR.toFixed(1)+"px");
-
-  // intensity -> gold glow / bloom of flowers within fantasy svg
-  const svg=fantasy.querySelector("svg");
-  if(svg){
-    const flowers=svg.querySelector(".fx-flowers");
-    if(flowers){ const s=0.4+state.intensity*0.6; flowers.style.transformBox="fill-box";
-      flowers.setAttribute("opacity",(0.3+state.intensity*0.7).toFixed(2)); }
-    const aura=svg.querySelector('ellipse[fill="url(#aura)"]');
-    if(aura) aura.setAttribute("opacity",(0.25+state.intensity*0.75).toFixed(2));
-  }
-  requestAnimationFrame(loop);
-}
-
-/* =========================================================================
-   Reduced motion: show a soft static fantasy hint, skip heavy loop parts
-   ========================================================================= */
-function boot(){
+/* boot: コンテンツ描画 + 言語適用 */
+(function boot(){
   renderRep(); renderMedia(); renderAwards();
   applyLang("en");
-  if(reduceMotion){
-    // 静止：幻想版をごく薄く常時見せる代わりに、通常版のみ（禁止事項に配慮し全体は見せない）
-    fantasy.style.setProperty("--mask-r","0px");
-    fantasy.style.opacity="0";
-  }else{
-    requestAnimationFrame(loop);
-  }
-}
-boot();
+})();
 </script>
 </body>
 </html>
