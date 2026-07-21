@@ -1,0 +1,6 @@
+ここに素材を入れてください。
+
+guitar-normal.webp / guitar-fantasy.webp / magpie.png / hayoung.webp
+string-e-low.mp3 / string-a.mp3 / string-d.mp3 / string-g.mp3 / string-b.mp3 / string-e-high.mp3
+
+入れたら index.html の CONFIG にパスを書いてください（README.md 参照）。

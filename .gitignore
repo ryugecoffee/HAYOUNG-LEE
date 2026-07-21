@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Editor
+.vscode/
+.idea/
+
+# Vercel
+.vercel
+
+# Node (未使用だが念のため)
+node_modules/
+npm-debug.log*

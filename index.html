@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Hayoung Lee — Classical Guitarist</title>
+<meta name="description" content="Hayoung Lee — Korean-born classical guitarist based in Alicante, Spain." />
+<!--
+  ============================================================
+  HAYOUNG LEE — Official Portfolio (single-file build)
+  すべての差し替え素材・テキストは下の CONFIG 1か所に集約しています。
+  ・画像:  CONFIG.assets.*   (guitar-normal / guitar-fantasy / magpie / portrait ...)
+  ・音源:  CONFIG.audio.strings[]  (string-e-low ... string-e-high)
+  ・文言:  CONFIG.i18n.{es,kr,en}
+  素材が無い間は SVG/合成音のプレースホルダーが自動で使われます。
+  画像パスを入れると自動でそちらを優先表示します。
+  ============================================================
+-->
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Jost:wght@300;400;500&display=swap");
+  :root{
+    --bg-0:#0a0705;
+    --bg-1:#140d07;
+    --bg-2:#1d130b;
+    --ink:#e9dfce;
+    --ink-soft:#b7a98f;
+    --ink-faint:#7d7159;
+    --gold:#c9a24a;
+    --gold-bright:#e6c877;
+    --line:rgba(201,162,74,.22);
+    --serif:"Cormorant Garamond","Times New Roman",serif;
+    --sans:"Jost","Helvetica Neue",system-ui,sans-serif;
+    --maxw:1200px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body,html{min-height:100%}
+  body{
+    background:
+      radial-gradient(1200px 800px at 50% -10%, #241708 0%, rgba(36,23,8,0) 60%),
+      linear-gradient(180deg,var(--bg-1) 0%, var(--bg-0) 40%, #0c0805 100%);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-weight:300;
+    letter-spacing:.02em;
+    line-height:1.7;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:.01em;line-height:1.15}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:rgba(201,162,74,.28);color:#fff}
+
+  /* ---------- NAV ---------- */
+  header.nav{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px clamp(18px,4vw,48px);
+    transition:background .5s ease, backdrop-filter .5s ease, padding .4s ease;
+  }
+  header.nav.scrolled{
+    background:linear-gradient(180deg,rgba(10,7,5,.86),rgba(10,7,5,.4) 70%,transparent);
+    backdrop-filter:blur(8px);padding-top:12px;padding-bottom:12px;
+  }
+  .brand{font-family:var(--serif);font-size:19px;letter-spacing:.18em;color:var(--ink)}
+  .brand span{color:var(--gold)}
+  nav.menu{display:flex;align-items:center;gap:clamp(14px,2.4vw,34px)}
+  nav.menu a.link{
+    font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);
+    position:relative;padding:6px 0;transition:color .35s;
+  }
+  nav.menu a.link::after{
+    content:"";position:absolute;left:0;bottom:0;height:1px;width:0;background:var(--gold);transition:width .4s ease;
+  }
+  nav.menu a.link:hover,nav.menu a.link:focus-visible{color:var(--ink)}
+  nav.menu a.link:hover::after,nav.menu a.link:focus-visible::after{width:100%}
+  .lang{display:flex;gap:2px;margin-left:8px}
+  .lang button{
+    background:none;border:none;color:var(--ink-faint);font:inherit;font-size:11px;letter-spacing:.14em;
+    cursor:pointer;padding:4px 7px;border-radius:2px;transition:color .3s;
+  }
+  .lang button.active{color:var(--gold-bright)}
+  .lang button:hover{color:var(--ink)}
+  .lang .sep{color:var(--ink-faint);opacity:.5;align-self:center;font-size:10px}
+  .burger{display:none;background:none;border:none;color:var(--ink);cursor:pointer;padding:6px}
+  .burger svg{width:24px;height:24px}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;min-height:100svh;min-height:100vh;
+    display:grid;grid-template-columns:1fr;align-items:center;justify-items:center;
+    padding:96px 16px 40px;
+  }
+  .hero-copy{
+    position:absolute;left:clamp(18px,6vw,80px);top:50%;transform:translateY(-50%);
+    z-index:6;max-width:min(38vw,340px);pointer-events:none;
+  }
+  .hero-copy .eyebrow{font-size:11px;letter-spacing:.4em;color:var(--gold);text-transform:uppercase;margin-bottom:18px}
+  .hero-copy h1{font-size:clamp(38px,6vw,74px);line-height:1.02;color:#f3ead9}
+  .hero-copy .role{margin-top:14px;font-size:13px;letter-spacing:.32em;text-transform:uppercase;color:var(--ink-soft)}
+  .hero-copy .place{margin-top:6px;font-size:12px;letter-spacing:.24em;color:var(--ink-faint)}
+  .hero-copy .poem{
+    margin-top:30px;font-family:var(--serif);font-style:italic;font-size:clamp(15px,1.5vw,19px);
+    color:var(--ink-soft);line-height:1.55;
+  }
+  @media (max-width:820px){
+    .hero-copy{position:static;transform:none;max-width:640px;text-align:center;margin-bottom:6px;order:-1}
+    .hero{grid-template-rows:auto 1fr;gap:8px}
+  }
+
+  /* guitar stage */
+  .stage-wrap{position:relative;z-index:4;width:100%;display:flex;justify-content:center}
+  .guitar-stage{
+    position:relative;width:clamp(230px,34vh,420px);aspect-ratio:400/1000;
+    filter:drop-shadow(0 40px 60px rgba(0,0,0,.6));
+    touch-action:pan-y;
+  }
+  .guitar-layer{position:absolute;inset:0;width:100%;height:100%}
+  .guitar-fantasy{
+    /* 幻想版は円形マスクでカーソル周辺だけ見せる。初期は完全非表示。 */
+    -webkit-mask-image:radial-gradient(circle var(--mask-r,0px) at var(--mx,50%) var(--my,50%),
+      #000 0%, #000 42%, rgba(0,0,0,.35) 68%, transparent 100%);
+    mask-image:radial-gradient(circle var(--mask-r,0px) at var(--mx,50%) var(--my,50%),
+      #000 0%, #000 42%, rgba(0,0,0,.35) 68%, transparent 100%);
+    opacity:var(--fantasy-op,1);
+    will-change:mask-image;
+  }
+  .guitar-img{width:100%;height:100%;object-fit:contain;display:block}
+  .hint{
+    position:absolute;left:50%;bottom:-34px;transform:translateX(-50%);
+    font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--ink-faint);
+    white-space:nowrap;opacity:.75;transition:opacity .6s;pointer-events:none;
+  }
+  .hero.touched .hint{opacity:0}
+
+  /* falling petals / particles container */
+  .fx-layer{position:absolute;inset:-6% -10%;pointer-events:none;z-index:5;overflow:visible}
+  .petal,.spark{position:absolute;top:0;left:0;will-change:transform,opacity;pointer-events:none}
+
+  /* sound toggle */
+  .sound-toggle{
+    position:fixed;right:18px;bottom:18px;z-index:60;
+    display:flex;align-items:center;gap:8px;
+    background:rgba(20,13,7,.7);backdrop-filter:blur(6px);
+    border:1px solid var(--line);border-radius:100px;padding:8px 14px 8px 10px;
+    color:var(--ink-soft);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    cursor:pointer;transition:color .3s,border-color .3s;
+  }
+  .sound-toggle:hover{color:var(--ink);border-color:rgba(201,162,74,.5)}
+  .sound-toggle svg{width:16px;height:16px;display:block}
+  .sound-toggle .on-wave{opacity:0}
+  .sound-toggle.on .on-wave{opacity:1}
+  .sound-toggle.on{color:var(--gold-bright)}
+
+  /* scroll cue */
+  .scroll-cue{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:6;color:var(--ink-faint);
+    font-size:10px;letter-spacing:.3em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .scroll-cue .l{width:1px;height:44px;background:linear-gradient(var(--gold),transparent);animation:cue 2.4s ease-in-out infinite}
+  @keyframes cue{0%,100%{transform:scaleY(.4);transform-origin:top;opacity:.4}50%{transform:scaleY(1);opacity:1}}
+
+  /* ---------- SECTIONS ---------- */
+  section.block{position:relative;max-width:var(--maxw);margin:0 auto;padding:clamp(70px,11vh,140px) clamp(20px,5vw,40px)}
+  .kicker{font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--gold);margin-bottom:18px;display:flex;align-items:center;gap:14px}
+  .kicker::before{content:"";width:34px;height:1px;background:var(--gold);opacity:.7}
+  .sec-title{font-size:clamp(28px,4.4vw,50px);color:#f1e7d6;margin-bottom:10px}
+  .lead{color:var(--ink-soft);max-width:60ch;font-size:clamp(15px,1.4vw,17px)}
+
+  /* about */
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(28px,5vw,64px);align-items:center;margin-top:40px}
+  @media (max-width:800px){.about-grid{grid-template-columns:1fr}}
+  .portrait{
+    position:relative;aspect-ratio:4/5;border-radius:2px;overflow:hidden;
+    background:linear-gradient(135deg,#2a1d10,#160e07);border:1px solid var(--line);
+  }
+  .portrait img{width:100%;height:100%;object-fit:cover;display:block}
+  .portrait .ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:var(--ink-faint);gap:10px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;text-align:center;padding:20px}
+  .portrait .ph svg{width:46px;height:46px;opacity:.5}
+  .about-body p{margin-bottom:18px;color:var(--ink-soft)}
+  .about-body p strong{color:var(--ink);font-weight:400}
+  .facts{display:flex;flex-wrap:wrap;gap:26px;margin-top:26px;border-top:1px solid var(--line);padding-top:24px}
+  .facts .f .n{font-family:var(--serif);font-size:26px;color:var(--gold-bright)}
+  .facts .f .t{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);margin-top:2px}
+
+  /* concerts */
+  .concerts{margin-top:36px;border-top:1px solid var(--line)}
+  .concert{
+    display:grid;grid-template-columns:150px 1fr auto;gap:20px;align-items:baseline;
+    padding:22px 4px;border-bottom:1px solid var(--line);transition:background .4s,padding-left .4s;
+  }
+  .concert:hover{background:linear-gradient(90deg,rgba(201,162,74,.06),transparent);padding-left:14px}
+  .concert .date{font-family:var(--serif);font-size:19px;color:var(--gold-bright);letter-spacing:.02em}
+  .concert .date small{display:block;font-family:var(--sans);font-size:11px;letter-spacing:.2em;color:var(--ink-faint);text-transform:uppercase}
+  .concert .info h3{font-size:20px;color:#efe5d4}
+  .concert .info .venue{font-size:13px;color:var(--ink-soft);margin-top:3px}
+  .concert .cta{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);white-space:nowrap;border:1px solid var(--line);padding:8px 14px;border-radius:100px;transition:.3s}
+  .concert .cta:hover{border-color:var(--gold);color:var(--gold-bright)}
+  .concert .cta.tbd{color:var(--ink-faint);border-color:transparent;pointer-events:none}
+  @media (max-width:720px){.concert{grid-template-columns:1fr;gap:6px}.concert .cta{justify-self:start;margin-top:6px}}
+
+  /* repertoire */
+  .rep-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:26px;margin-top:38px}
+  .rep-card{border:1px solid var(--line);border-radius:3px;padding:26px 24px;background:linear-gradient(180deg,rgba(30,20,10,.5),rgba(15,10,6,.3));transition:.4s}
+  .rep-card:hover{border-color:rgba(201,162,74,.5);transform:translateY(-3px)}
+  .rep-card h3{font-size:20px;color:var(--gold-bright);margin-bottom:14px}
+  .rep-card ul{list-style:none}
+  .rep-card li{padding:7px 0;border-bottom:1px dashed rgba(201,162,74,.14);color:var(--ink-soft);font-size:14.5px;display:flex;justify-content:space-between;gap:12px}
+  .rep-card li:last-child{border-bottom:none}
+  .rep-card li span{color:var(--ink-faint);font-size:12px;font-style:italic;text-align:right}
+
+  /* media */
+  .media-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;margin-top:38px}
+  .media-card{position:relative;aspect-ratio:16/9;border-radius:3px;overflow:hidden;border:1px solid var(--line);
+    background:linear-gradient(135deg,#241708,#120b06);display:flex;align-items:center;justify-content:center;transition:.4s}
+  .media-card:hover{border-color:rgba(201,162,74,.5)}
+  .media-card iframe{width:100%;height:100%;border:0;display:block}
+  .media-card .play{width:64px;height:64px;border-radius:50%;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;color:var(--gold);transition:.4s}
+  .media-card:hover .play{background:rgba(201,162,74,.15);transform:scale(1.06)}
+  .media-card .cap{position:absolute;left:14px;bottom:12px;font-size:12px;letter-spacing:.16em;color:var(--ink);text-transform:uppercase;text-shadow:0 2px 8px #000}
+
+  /* awards */
+  .awards{margin-top:36px;display:grid;gap:2px}
+  .award{display:grid;grid-template-columns:96px 1fr;gap:22px;padding:20px 4px;border-bottom:1px solid var(--line);align-items:baseline}
+  .award .yr{font-family:var(--serif);font-size:22px;color:var(--gold-bright)}
+  .award h3{font-size:18px;color:#efe5d4}
+  .award .sub{font-size:13px;color:var(--ink-soft);margin-top:2px}
+
+  /* contact */
+  #contact{position:relative}
+  .contact-inner{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,6vw,80px);margin-top:38px;align-items:start}
+  @media (max-width:760px){.contact-inner{grid-template-columns:1fr}}
+  .contact-inner .big{font-family:var(--serif);font-size:clamp(24px,3vw,34px);color:#f1e7d6;line-height:1.3}
+  .contact-inner a.mail{color:var(--gold-bright);border-bottom:1px solid var(--line);font-size:clamp(18px,2vw,22px);font-family:var(--serif)}
+  .contact-list{display:flex;flex-direction:column;gap:16px}
+  .contact-list .row{display:flex;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}
+  .contact-list .row .k{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint)}
+  .contact-list .row .v{color:var(--ink)}
+  .socials{display:flex;gap:14px;margin-top:26px}
+  .socials a{width:44px;height:44px;border:1px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);transition:.35s}
+  .socials a:hover{border-color:var(--gold);color:var(--gold-bright);transform:translateY(-2px)}
+  .socials svg{width:19px;height:19px}
+
+  footer.foot{text-align:center;padding:50px 20px 40px;color:var(--ink-faint);font-size:11px;letter-spacing:.22em;text-transform:uppercase;border-top:1px solid var(--line);margin-top:20px}
+  footer.foot .magpie-note{font-family:var(--serif);font-style:italic;text-transform:none;letter-spacing:.02em;font-size:14px;color:var(--ink-soft);margin-bottom:14px}
+
+  /* mobile menu overlay */
+  .m-overlay{position:fixed;inset:0;z-index:55;background:rgba(8,5,3,.97);backdrop-filter:blur(10px);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;
+    opacity:0;pointer-events:none;transition:opacity .4s}
+  .m-overlay.open{opacity:1;pointer-events:auto}
+  .m-overlay a{font-family:var(--serif);font-size:28px;color:var(--ink);letter-spacing:.06em}
+  .m-overlay a:hover{color:var(--gold-bright)}
+  .m-overlay .close{position:absolute;top:22px;right:22px;background:none;border:none;color:var(--ink);cursor:pointer}
+  .m-overlay .close svg{width:28px;height:28px}
+  @media (max-width:820px){
+    nav.menu .link{display:none}
+    .burger{display:block}
+    .lang{margin-left:0}
+  }
+
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity 1s cubic-bezier(.16,.7,.2,1),transform 1s cubic-bezier(.16,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+</style>
+</head>
+<body>
+
+<!-- ===================== NAV ===================== -->
+<header class="nav" id="nav">
+  <a href="#home" class="brand">HAYOUNG <span>LEE</span></a>
+  <nav class="menu">
+    <a class="link" href="#home"  data-i18n="nav.home">Home</a>
+    <a class="link" href="#about" data-i18n="nav.about">About</a>
+    <a class="link" href="#concerts" data-i18n="nav.concerts">Concerts</a>
+    <a class="link" href="#repertoire" data-i18n="nav.repertoire">Repertoire</a>
+    <a class="link" href="#media" data-i18n="nav.media">Media</a>
+    <a class="link" href="#contact" data-i18n="nav.contact">Contact</a>
+    <div class="lang" role="group" aria-label="Language">
+      <button data-lang="es">ES</button><span class="sep">/</span>
+      <button data-lang="kr">KR</button><span class="sep">/</span>
+      <button data-lang="en" class="active">EN</button>
+    </div>
+    <button class="burger" aria-label="Menu" id="burger">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
+    </button>
+  </nav>
+</header>
+
+<div class="m-overlay" id="mOverlay">
+  <button class="close" id="mClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <a href="#about" data-i18n="nav.about">About</a>
+  <a href="#concerts" data-i18n="nav.concerts">Concerts</a>
+  <a href="#repertoire" data-i18n="nav.repertoire">Repertoire</a>
+  <a href="#media" data-i18n="nav.media">Media</a>
+  <a href="#contact" data-i18n="nav.contact">Contact</a>
+</div>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="home">
+  <div class="hero-copy">
+    <div class="eyebrow" data-i18n="hero.eyebrow">Classical Guitarist</div>
+    <h1>HAYOUNG<br>LEE</h1>
+    <div class="role" data-i18n="hero.role">Classical Guitarist</div>
+    <div class="place" data-i18n="hero.place">Alicante, Spain</div>
+    <p class="poem" data-i18n="hero.poem">Between Spain and Korea,<br>one soul, six strings.</p>
+  </div>
+
+  <div class="stage-wrap">
+    <div class="guitar-stage" id="stage" aria-label="Classical guitar">
+      <!-- 幻想版（下に置いても良いが、マスクで上に重ねる） -->
+      <div class="fx-layer" id="fxLayer"></div>
+      <!-- 通常ギター -->
+      <div class="guitar-layer guitar-normal" id="gNormal"></div>
+      <!-- 幻想ギター（円形マスク） -->
+      <div class="guitar-layer guitar-fantasy" id="gFantasy"></div>
+      <div class="hint" data-i18n="hero.hint">Trace the guitar slowly</div>
+    </div>
+  </div>
+
+  <div class="scroll-cue"><span data-i18n="hero.scroll">Scroll</span><span class="l"></span></div>
+</section>
+
+<!-- ===================== ABOUT ===================== -->
+<section class="block" id="about">
+  <div class="kicker reveal"><span data-i18n="about.kicker">About</span></div>
+  <h2 class="sec-title reveal" data-i18n="about.title">The player &amp; the instrument</h2>
+  <div class="about-grid">
+    <div class="portrait reveal" id="portrait">
+      <div class="ph">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="9" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+        <span data-i18n="about.photo">Portrait — replace with real photo</span>
+      </div>
+    </div>
+    <div class="about-body reveal">
+      <p data-i18n="about.p1"><strong>Hayoung Lee</strong> is a Korean-born classical guitarist based in Alicante, Spain.</p>
+      <p data-i18n="about.p2">Her playing is shaped by the warmth of the Spanish Mediterranean and the quiet lyricism of her Korean roots — a single voice moving between two homes.</p>
+      <p data-i18n="about.p3">She studied at Seoul National University and the Conservatorio Superior de Música de Madrid, and now performs across Spain and Korea.</p>
+      <div class="facts">
+        <div class="f"><div class="n">Alicante</div><div class="t" data-i18n="about.f1">Based in Spain</div></div>
+        <div class="f"><div class="n">Seoul → Madrid</div><div class="t" data-i18n="about.f2">Formation</div></div>
+        <div class="f"><div class="n">ES · KR</div><div class="t" data-i18n="about.f3">Two homes</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CONCERTS ===================== -->
+<section class="block" id="concerts">
+  <div class="kicker reveal"><span data-i18n="concerts.kicker">Concerts</span></div>
+  <h2 class="sec-title reveal" data-i18n="concerts.title">Upcoming performances</h2>
+  <p class="lead reveal" data-i18n="concerts.lead">Selected upcoming dates. Programmes and tickets are confirmed closer to each concert.</p>
+  <div class="concerts reveal" id="concertList"></div>
+</section>
+
+<!-- ===================== REPERTOIRE ===================== -->
+<section class="block" id="repertoire">
+  <div class="kicker reveal"><span data-i18n="rep.kicker">Repertoire</span></div>
+  <h2 class="sec-title reveal" data-i18n="rep.title">Programme &amp; composers</h2>
+  <p class="lead reveal" data-i18n="rep.lead">A repertoire rooted in the Spanish tradition, with the Iberian and Latin-American masters at its heart.</p>
+  <div class="rep-grid reveal" id="repGrid"></div>
+</section>
+
+<!-- ===================== MEDIA ===================== -->
+<section class="block" id="media">
+  <div class="kicker reveal"><span data-i18n="media.kicker">Media</span></div>
+  <h2 class="sec-title reveal" data-i18n="media.title">Watch &amp; listen</h2>
+  <div class="media-grid reveal" id="mediaGrid"></div>
+</section>
+
+<!-- ===================== AWARDS ===================== -->
+<section class="block" id="awards">
+  <div class="kicker reveal"><span data-i18n="awards.kicker">Awards</span></div>
+  <h2 class="sec-title reveal" data-i18n="awards.title">Distinctions</h2>
+  <div class="awards reveal" id="awardsList"></div>
+</section>
+
+<!-- ===================== CONTACT ===================== -->
+<section class="block" id="contact">
+  <div class="kicker reveal"><span data-i18n="contact.kicker">Contact</span></div>
+  <h2 class="sec-title reveal" data-i18n="contact.title">Invitations &amp; lessons</h2>
+  <div class="contact-inner">
+    <div class="reveal">
+      <p class="big" data-i18n="contact.big">For concert bookings, collaborations and private lessons.</p>
+      <p style="margin-top:22px"><a class="mail" id="mailLink" href="mailto:glory91126@gmail.com">glory91126@gmail.com</a></p>
+      <div class="socials">
+        <a id="ig" href="https://instagram.com/hayoung_guitar" target="_blank" rel="noopener" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a id="yt" href="#" target="_blank" rel="noopener" aria-label="YouTube">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="contact-list reveal">
+      <div class="row"><span class="k" data-i18n="contact.k1">Bookings</span><span class="v" data-i18n="contact.v1">Concerts &amp; festivals</span></div>
+      <div class="row"><span class="k" data-i18n="contact.k2">Lessons</span><span class="v" data-i18n="contact.v2">Private &amp; masterclass</span></div>
+      <div class="row"><span class="k" data-i18n="contact.k3">Based in</span><span class="v">Alicante, Spain</span></div>
+      <div class="row"><span class="k" data-i18n="contact.k4">Languages</span><span class="v">ES · KR · EN</span></div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="magpie-note" data-i18n="foot.note">A single magpie between Spain and Korea.</div>
+  © <span id="year"></span> Hayoung Lee · Classical Guitarist
+</footer>
+
+<!-- sound toggle -->
+<button class="sound-toggle" id="soundToggle" aria-pressed="false">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+    <path d="M4 9v6h4l5 4V5L8 9H4z"/>
+    <g class="on-wave"><path d="M16 9a4 4 0 0 1 0 6"/><path d="M18.5 7a7 7 0 0 1 0 10"/></g>
+  </svg>
+  <span id="soundLabel" data-i18n="sound.off">Sound Off</span>
+</button>
+
+<script>
+/* =========================================================================
+   CONFIG — 差し替えはここだけ触ればOK
+   ========================================================================= */
+const CONFIG = {
+  assets:{
+    guitarNormal:"", // 例: "assets/guitar-normal.webp" （空ならSVGプレースホルダー）
+    guitarFantasy:"",// 例: "assets/guitar-fantasy.webp"
+    magpie:"",       // 例: "assets/magpie.png"
+    portrait:"",     // 例: "assets/hayoung.webp"
+  },
+  audio:{
+    // 実音源を入れると自動でそちら優先。空ならKarplus-Strong合成音。
+    strings:["","","","","",""], // [E2,A2,D3,G3,B3,E4]
+    frequencies:[82.41,110.00,146.83,196.00,246.94,329.63],
+    masterVolume:0.22,
+  },
+  links:{
+    instagram:"https://instagram.com/hayoung_guitar",
+    youtube:"", // 例: "https://youtube.com/@..."
+    email:"glory91126@gmail.com",
+  },
+  concerts:[
+    {date:"Oct–Nov", year:"2025", title:"XVII Jornadas de Guitarra de Elda", venue:"Elda, Alicante · Spain", url:"", tbd:true},
+    {date:"—", year:"2025", title:"Recital · to be announced", venue:"Spain", url:"", tbd:true},
+    {date:"—", year:"2026", title:"Recital · to be announced", venue:"Korea", url:"", tbd:true},
+  ],
+  repertoire:[
+    {group:"Spanish masters", items:[
+      ["Recuerdos de la Alhambra","Tárrega"],["Asturias (Leyenda)","Albéniz"],["Danza Española No.5","Granados"]]},
+    {group:"Concerto & Rodrigo", items:[
+      ["Concierto de Aranjuez","Rodrigo"],["Invocación y Danza","Rodrigo"],["Sevilla","Albéniz"]]},
+    {group:"Classical & Bach", items:[
+      ["Gran Vals","Tárrega"],["Chaconne, BWV 1004","J.S. Bach"],["Estudios","Sor / Villa-Lobos"]]},
+  ],
+  media:[
+    {title:"Recital — live", yt:""},
+    {title:"Studio session", yt:""},
+    {title:"Alicante sessions", yt:""},
+  ],
+  awards:[
+    {year:"—", title:"International Classical Guitar Competition", sub:"Prize winner · (add details)"},
+    {year:"—", title:"National Guitar Competition, Korea", sub:"Laureate · (add details)"},
+  ],
+};
+
+/* =========================================================================
+   i18n — 仮訳（あとで上書き可）。EN/ES/KR。
+   ========================================================================= */
+const I18N={
+  en:{
+    "nav.home":"Home","nav.about":"About","nav.concerts":"Concerts","nav.repertoire":"Repertoire","nav.media":"Media","nav.contact":"Contact",
+    "hero.eyebrow":"Classical Guitarist","hero.role":"Classical Guitarist","hero.place":"Alicante, Spain",
+    "hero.poem":"Between Spain and Korea,<br>one soul, six strings.","hero.hint":"Trace the guitar slowly","hero.scroll":"Scroll",
+    "about.kicker":"About","about.title":"The player & the instrument","about.photo":"Portrait — replace with real photo",
+    "about.p1":"<strong>Hayoung Lee</strong> is a Korean-born classical guitarist based in Alicante, Spain.",
+    "about.p2":"Her playing is shaped by the warmth of the Spanish Mediterranean and the quiet lyricism of her Korean roots — a single voice moving between two homes.",
+    "about.p3":"She studied at Seoul National University and the Conservatorio Superior de Música de Madrid, and now performs across Spain and Korea.",
+    "about.f1":"Based in Spain","about.f2":"Formation","about.f3":"Two homes",
+    "concerts.kicker":"Concerts","concerts.title":"Upcoming performances","concerts.lead":"Selected upcoming dates. Programmes and tickets are confirmed closer to each concert.","concerts.tickets":"Tickets","concerts.tbd":"Soon",
+    "rep.kicker":"Repertoire","rep.title":"Programme & composers","rep.lead":"A repertoire rooted in the Spanish tradition, with the Iberian and Latin-American masters at its heart.",
+    "media.kicker":"Media","media.title":"Watch & listen",
+    "awards.kicker":"Awards","awards.title":"Distinctions",
+    "contact.kicker":"Contact","contact.title":"Invitations & lessons","contact.big":"For concert bookings, collaborations and private lessons.",
+    "contact.k1":"Bookings","contact.v1":"Concerts & festivals","contact.k2":"Lessons","contact.v2":"Private & masterclass","contact.k3":"Based in","contact.k4":"Languages",
+    "foot.note":"A single magpie between Spain and Korea.","sound.off":"Sound Off","sound.on":"Sound On",
+  },
+  es:{
+    "nav.home":"Inicio","nav.about":"Perfil","nav.concerts":"Conciertos","nav.repertoire":"Repertorio","nav.media":"Media","nav.contact":"Contacto",
+    "hero.eyebrow":"Guitarrista Clásica","hero.role":"Guitarrista Clásica","hero.place":"Alicante, España",
+    "hero.poem":"Entre España y Corea,<br>un alma, seis cuerdas.","hero.hint":"Recorre la guitarra despacio","hero.scroll":"Desliza",
+    "about.kicker":"Perfil","about.title":"La intérprete y el instrumento","about.photo":"Retrato — sustituir por foto real",
+    "about.p1":"<strong>Hayoung Lee</strong> es una guitarrista clásica nacida en Corea y afincada en Alicante, España.",
+    "about.p2":"Su interpretación nace del calor del Mediterráneo español y del lirismo sereno de sus raíces coreanas — una sola voz entre dos hogares.",
+    "about.p3":"Se formó en la Universidad Nacional de Seúl y en el Conservatorio Superior de Música de Madrid, y actúa en España y Corea.",
+    "about.f1":"En España","about.f2":"Formación","about.f3":"Dos hogares",
+    "concerts.kicker":"Conciertos","concerts.title":"Próximos conciertos","concerts.lead":"Fechas seleccionadas. Programas y entradas se confirman antes de cada concierto.","concerts.tickets":"Entradas","concerts.tbd":"Pronto",
+    "rep.kicker":"Repertorio","rep.title":"Programa y compositores","rep.lead":"Un repertorio arraigado en la tradición española, con los maestros ibéricos y latinoamericanos en su centro.",
+    "media.kicker":"Media","media.title":"Ver y escuchar",
+    "awards.kicker":"Premios","awards.title":"Distinciones",
+    "contact.kicker":"Contacto","contact.title":"Invitaciones y clases","contact.big":"Para conciertos, colaboraciones y clases particulares.",
+    "contact.k1":"Conciertos","contact.v1":"Conciertos y festivales","contact.k2":"Clases","contact.v2":"Particulares y clases magistrales","contact.k3":"Reside en","contact.k4":"Idiomas",
+    "foot.note":"Una sola urraca entre España y Corea.","sound.off":"Sonido Off","sound.on":"Sonido On",
+  },
+  kr:{
+    "nav.home":"홈","nav.about":"소개","nav.concerts":"공연","nav.repertoire":"레퍼토리","nav.media":"미디어","nav.contact":"연락",
+    "hero.eyebrow":"클래식 기타리스트","hero.role":"클래식 기타리스트","hero.place":"스페인 알리칸테",
+    "hero.poem":"스페인과 한국 사이,<br>하나의 영혼, 여섯 개의 현.","hero.hint":"기타를 천천히 따라가 보세요","hero.scroll":"스크롤",
+    "about.kicker":"소개","about.title":"연주자와 악기","about.photo":"인물 사진 — 실제 사진으로 교체",
+    "about.p1":"<strong>이하영</strong>은 한국에서 태어나 스페인 알리칸테를 기반으로 활동하는 클래식 기타리스트입니다.",
+    "about.p2":"그녀의 연주에는 스페인 지중해의 따스함과 한국적 뿌리의 고요한 서정이 함께 흐릅니다 — 두 고향을 오가는 하나의 목소리.",
+    "about.p3":"서울대학교와 마드리드 국립음악원에서 수학했으며, 스페인과 한국을 오가며 연주하고 있습니다.",
+    "about.f1":"스페인 거주","about.f2":"학업","about.f3":"두 개의 고향",
+    "concerts.kicker":"공연","concerts.title":"다가오는 공연","concerts.lead":"예정된 공연 일정입니다. 프로그램과 티켓은 공연에 앞서 안내됩니다.","concerts.tickets":"티켓","concerts.tbd":"공개 예정",
+    "rep.kicker":"레퍼토리","rep.title":"프로그램과 작곡가","rep.lead":"스페인 전통에 뿌리를 둔, 이베리아와 라틴 아메리카 거장들을 중심으로 한 레퍼토리.",
+    "media.kicker":"미디어","media.title":"영상과 음악",
+    "awards.kicker":"수상","awards.title":"주요 수상",
+    "contact.kicker":"연락","contact.title":"섭외와 레슨","contact.big":"공연 섭외, 협업, 개인 레슨 문의.",
+    "contact.k1":"섭외","contact.v1":"공연 · 페스티벌","contact.k2":"레슨","contact.v2":"개인 · 마스터클래스","contact.k3":"거주지","contact.k4":"언어",
+    "foot.note":"스페인과 한국 사이, 한 마리의 까치.","sound.off":"소리 꺼짐","sound.on":"소리 켜짐",
+  },
+};
+
+/* =========================================================================
+   SVG プレースホルダー — 通常ギター / 幻想ギター（同一 viewBox）
+   ========================================================================= */
+const VIEWBOX="0 0 400 1000";
+// 共通ボディ・パス（図形を両バージョンで完全一致させるため一度だけ定義）
+const BODY_PATH="M200,430 C260,430 286,468 291,520 C295,562 302,602 286,646 C276,678 292,722 316,762 C346,802 351,872 320,916 C300,946 250,958 200,958 C150,958 100,946 80,916 C49,872 54,802 84,762 C108,722 124,678 114,646 C98,602 105,562 109,520 C114,468 140,430 200,430 Z";
+const NECK_X=176, NECK_W=48, NUT_Y=126, BRIDGE_Y=792, SOUND_CY=612, SOUND_R=54;
+// 弦の nut/bridge での x 座標
+const STR_NUT=[184,191.2,198.4,205.6,212.8,220].map(v=>v-3); // slight center offset handled below
+function strNutX(i){return 185 + i*6;}   // 185..215
+function strBridgeX(i){return 171 + i*11.6;} // 171..229
+
+function guitarNormalSVG(){
+  return `
+<svg viewBox="${VIEWBOX}" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c98a44"/><stop offset=".45" stop-color="#b5722e"/>
+      <stop offset=".75" stop-color="#9a5d22"/><stop offset="1" stop-color="#7c4a1a"/>
+    </linearGradient>
+    <radialGradient id="woodGlow" cx="50%" cy="42%" r="60%">
+      <stop offset="0" stop-color="#d59a52"/><stop offset="1" stop-color="#a5641f"/>
+    </radialGradient>
+    <linearGradient id="neck" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2a1c10"/><stop offset=".5" stop-color="#3d2915"/><stop offset="1" stop-color="#241609"/>
+    </linearGradient>
+    <linearGradient id="head" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a2614"/><stop offset="1" stop-color="#26180c"/>
+    </linearGradient>
+  </defs>
+  <!-- body -->
+  <path d="${BODY_PATH}" fill="url(#woodGlow)" stroke="#5c3813" stroke-width="3"/>
+  <path d="${BODY_PATH}" fill="none" stroke="rgba(255,220,160,.18)" stroke-width="1" transform="scale(.94) translate(13,32)"/>
+  <!-- wood grain -->
+  <g stroke="rgba(90,50,15,.35)" stroke-width="1" fill="none">
+    <path d="M170,440 C160,600 165,780 180,950"/>
+    <path d="M200,438 C196,600 198,780 200,952"/>
+    <path d="M230,440 C240,600 236,780 220,950"/>
+    <path d="M150,470 C140,620 150,800 168,930"/>
+    <path d="M250,470 C262,620 250,800 232,930"/>
+  </g>
+  <!-- soundhole + rosette -->
+  <circle cx="200" cy="${SOUND_CY}" r="${SOUND_R+9}" fill="none" stroke="#2a1810" stroke-width="2"/>
+  <circle cx="200" cy="${SOUND_CY}" r="${SOUND_R+8}" fill="none" stroke="#3a2410" stroke-width="6"/>
+  <circle cx="200" cy="${SOUND_CY}" r="${SOUND_R+4}" fill="none" stroke="#caa24a" stroke-width="2" opacity=".55"/>
+  <circle cx="200" cy="${SOUND_CY}" r="${SOUND_R}" fill="#150d06"/>
+  <circle cx="200" cy="${SOUND_CY}" r="${SOUND_R-2}" fill="none" stroke="#000" stroke-width="2" opacity=".6"/>
+  <!-- bridge -->
+  <rect x="150" y="${BRIDGE_Y-16}" width="100" height="30" rx="6" fill="#2a1a0d" stroke="#4a2f16"/>
+  <rect x="158" y="${BRIDGE_Y-8}" width="84" height="7" rx="3" fill="#0f0904"/>
+  <!-- neck / fretboard -->
+  <rect x="${NECK_X}" y="130" width="${NECK_W}" height="320" fill="url(#neck)"/>
+  <g stroke="#6a4a28" stroke-width="1.4">
+    ${Array.from({length:9},(_,i)=>`<line x1="${NECK_X}" y1="${160+i*32}" x2="${NECK_X+NECK_W}" y2="${160+i*32}"/>`).join("")}
+  </g>
+  <!-- nut -->
+  <rect x="${NECK_X-2}" y="${NUT_Y-4}" width="${NECK_W+4}" height="8" rx="2" fill="#e8dcc2"/>
+  <!-- headstock -->
+  <path d="M172,126 C168,96 168,60 176,34 C182,20 218,20 224,34 C232,60 232,96 228,126 Z" fill="url(#head)" stroke="#4a2f16" stroke-width="2"/>
+  <rect x="186" y="44" width="9" height="64" rx="4" fill="#120b05"/>
+  <rect x="205" y="44" width="9" height="64" rx="4" fill="#120b05"/>
+  <g fill="#efe7d4">
+    <circle cx="176" cy="58" r="6"/><circle cx="176" cy="82" r="6"/><circle cx="176" cy="106" r="6"/>
+    <circle cx="224" cy="58" r="6"/><circle cx="224" cy="82" r="6"/><circle cx="224" cy="106" r="6"/>
+  </g>
+  <g fill="#caa24a"><circle cx="176" cy="58" r="2"/><circle cx="176" cy="82" r="2"/><circle cx="176" cy="106" r="2"/><circle cx="224" cy="58" r="2"/><circle cx="224" cy="82" r="2"/><circle cx="224" cy="106" r="2"/></g>
+</svg>`;
+}
+
+function guitarFantasySVG(){
+  // 通常版と完全同一の輪郭・弦位置。装飾（金の光・花・蔦）を上乗せ。
+  const petalColors=["#e8756b","#e3a1b0","#f4ede0","#c2447a","#e8a24a"];
+  let flowers="";
+  const spots=[[120,560],[280,560],[104,680],[300,690],[140,860],[264,862],[200,930],[96,520],[306,520],[168,486],[236,486]];
+  spots.forEach((s,i)=>{
+    const c=petalColors[i%petalColors.length];
+    flowers+=`<g class="fx-flower" transform="translate(${s[0]},${s[1]})">
+      <g fill="${c}" opacity=".92">
+        ${Array.from({length:5},(_,k)=>`<ellipse cx="0" cy="-7" rx="4.4" ry="8" transform="rotate(${k*72})"/>`).join("")}
+      </g>
+      <circle r="3" fill="#f6d878"/>
+    </g>`;
+  });
+  return `
+<svg viewBox="${VIEWBOX}" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+  <defs>
+    <radialGradient id="fbody" cx="50%" cy="44%" r="62%">
+      <stop offset="0" stop-color="#f2c66e"/><stop offset=".5" stop-color="#d69240"/>
+      <stop offset=".85" stop-color="#9c5b22"/><stop offset="1" stop-color="#6d3f16"/>
+    </radialGradient>
+    <radialGradient id="hole" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#fff3c8"/><stop offset=".4" stop-color="#f4c95f"/>
+      <stop offset=".75" stop-color="#b9791f"/><stop offset="1" stop-color="#1a0f06"/>
+    </radialGradient>
+    <linearGradient id="vine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6d878"/><stop offset="1" stop-color="#a9791f"/>
+    </linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="2.4"/></filter>
+    <radialGradient id="aura" cx="50%" cy="46%" r="60%">
+      <stop offset="0" stop-color="rgba(255,220,130,.55)"/><stop offset="1" stop-color="rgba(255,200,120,0)"/>
+    </radialGradient>
+  </defs>
+  <!-- warm aura -->
+  <ellipse cx="200" cy="620" rx="230" ry="330" fill="url(#aura)"/>
+  <!-- body glowing -->
+  <path d="${BODY_PATH}" fill="url(#fbody)" stroke="#f0c063" stroke-width="2.5"/>
+  <!-- golden vines tracing the body -->
+  <path d="${BODY_PATH}" fill="none" stroke="url(#vine)" stroke-width="2.4" stroke-dasharray="3 9" opacity=".85" transform="scale(.9) translate(20,52)"/>
+  <path d="M120,470 C150,540 150,640 132,720 C122,770 138,840 176,900" fill="none" stroke="url(#vine)" stroke-width="2" opacity=".7"/>
+  <path d="M282,470 C252,540 252,640 270,720 C280,770 264,840 226,900" fill="none" stroke="url(#vine)" stroke-width="2" opacity=".7"/>
+  <!-- small leaves on vines -->
+  <g fill="#c8a24a" opacity=".8">
+    <ellipse cx="132" cy="560" rx="7" ry="3.4" transform="rotate(40 132 560)"/>
+    <ellipse cx="270" cy="560" rx="7" ry="3.4" transform="rotate(-40 270 560)"/>
+    <ellipse cx="128" cy="700" rx="7" ry="3.4" transform="rotate(20 128 700)"/>
+    <ellipse cx="274" cy="700" rx="7" ry="3.4" transform="rotate(-20 274 700)"/>
+  </g>
+  <!-- flowers -->
+  <g class="fx-flowers">${flowers}</g>
+  <!-- glowing soundhole -->
+  <circle cx="200" cy="${SOUND_CY}" r="${SOUND_R+8}" fill="none" stroke="#f0c063" stroke-width="3" opacity=".9"/>
+  <circle cx="200" cy="${SOUND_CY}" r="${SOUND_R}" fill="url(#hole)"/>
+  <circle cx="200" cy="${SOUND_CY}" r="${SOUND_R-6}" fill="rgba(255,240,190,.35)" filter="url(#soft)"/>
+  <!-- bridge (same position) -->
+  <rect x="150" y="${BRIDGE_Y-16}" width="100" height="30" rx="6" fill="#3a2410" stroke="#f0c063"/>
+  <!-- neck glow -->
+  <rect x="${NECK_X}" y="130" width="${NECK_W}" height="320" fill="#2a1c10"/>
+  <rect x="${NECK_X}" y="130" width="${NECK_W}" height="320" fill="url(#vine)" opacity=".14"/>
+  <!-- head with light -->
+  <path d="M172,126 C168,96 168,60 176,34 C182,20 218,20 224,34 C232,60 232,96 228,126 Z" fill="#2a1c10" stroke="#f0c063" stroke-width="1.6"/>
+  <g fill="#f6d878"><circle cx="176" cy="58" r="4"/><circle cx="176" cy="82" r="4"/><circle cx="176" cy="106" r="4"/><circle cx="224" cy="58" r="4"/><circle cx="224" cy="82" r="4"/><circle cx="224" cy="106" r="4"/></g>
+</svg>`;
+}
+
+/* =========================================================================
+   Boot
+   ========================================================================= */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const reduceMotion = matchMedia("(prefers-reduced-motion:reduce)").matches;
+const isTouch = matchMedia("(hover:none), (pointer:coarse)").matches;
+
+document.getElementById("year").textContent = "2026";
+
+/* ---- guitar layers: image if provided, else SVG ---- */
+function setLayer(el, imgPath, svgFn){
+  if(imgPath){ el.innerHTML = `<img class="guitar-img" src="${imgPath}" alt="" loading="eager">`; }
+  else{ el.innerHTML = svgFn(); }
+}
+setLayer($("#gNormal"),  CONFIG.assets.guitarNormal,  guitarNormalSVG);
+setLayer($("#gFantasy"), CONFIG.assets.guitarFantasy, guitarFantasySVG);
+
+/* portrait */
+if(CONFIG.assets.portrait){ $("#portrait").innerHTML=`<img src="${CONFIG.assets.portrait}" alt="Hayoung Lee" loading="lazy">`; }
+
+/* contact links */
+$("#mailLink").href="mailto:"+CONFIG.links.email;
+$("#mailLink").textContent=CONFIG.links.email;
+$("#ig").href=CONFIG.links.instagram;
+if(CONFIG.links.youtube) $("#yt").href=CONFIG.links.youtube;
+
+/* =========================================================================
+   Render content sections
+   ========================================================================= */
+function renderConcerts(t){
+  $("#concertList").innerHTML = CONFIG.concerts.map(c=>{
+    const cta = c.tbd ? `<span class="cta tbd">${t["concerts.tbd"]}</span>`
+                      : `<a class="cta" href="${c.url||'#'}" target="_blank" rel="noopener">${t["concerts.tickets"]}</a>`;
+    return `<div class="concert"><div class="date">${c.date}<small>${c.year}</small></div>
+      <div class="info"><h3>${c.title}</h3><div class="venue">${c.venue}</div></div>${cta}</div>`;
+  }).join("");
+}
+function renderRep(){
+  $("#repGrid").innerHTML = CONFIG.repertoire.map(g=>`
+    <div class="rep-card"><h3>${g.group}</h3><ul>
+      ${g.items.map(it=>`<li>${it[0]}<span>${it[1]}</span></li>`).join("")}
+    </ul></div>`).join("");
+}
+function renderMedia(){
+  $("#mediaGrid").innerHTML = CONFIG.media.map(m=>{
+    if(m.yt){
+      return `<div class="media-card"><iframe loading="lazy" src="https://www.youtube.com/embed/${m.yt}" title="${m.title}" allowfullscreen></iframe></div>`;
+    }
+    return `<div class="media-card"><div class="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div><div class="cap">${m.title}</div></div>`;
+  }).join("");
+}
+function renderAwards(){
+  $("#awardsList").innerHTML = CONFIG.awards.map(a=>`
+    <div class="award"><div class="yr">${a.year}</div><div><h3>${a.title}</h3><div class="sub">${a.sub}</div></div></div>`).join("");
+}
+
+/* =========================================================================
+   i18n apply
+   ========================================================================= */
+let currentLang="en";
+function applyLang(lang){
+  currentLang=lang;
+  const t=I18N[lang]||I18N.en;
+  document.documentElement.lang = lang==="kr"?"ko":lang;
+  $$("[data-i18n]").forEach(el=>{
+    const k=el.getAttribute("data-i18n");
+    if(t[k]!=null) el.innerHTML=t[k];
+  });
+  $$(".lang button").forEach(b=>b.classList.toggle("active", b.dataset.lang===lang));
+  renderConcerts(t);
+  updateSoundLabel();
+}
+$$(".lang button").forEach(b=>b.addEventListener("click",()=>applyLang(b.dataset.lang)));
+
+/* =========================================================================
+   Nav: scroll state, mobile menu, hash
+   ========================================================================= */
+const nav=$("#nav");
+addEventListener("scroll",()=>{ nav.classList.toggle("scrolled", scrollY>40); },{passive:true});
+const mo=$("#mOverlay");
+$("#burger").addEventListener("click",()=>mo.classList.add("open"));
+$("#mClose").addEventListener("click",()=>mo.classList.remove("open"));
+$$("#mOverlay a").forEach(a=>a.addEventListener("click",()=>mo.classList.remove("open")));
+
+/* smooth scroll + hash (respects reduced motion) */
+$$('a[href^="#"]').forEach(a=>{
+  a.addEventListener("click",e=>{
+    const id=a.getAttribute("href");
+    const tgt=id.length>1 && $(id);
+    if(tgt){ e.preventDefault();
+      tgt.scrollIntoView({behavior:reduceMotion?"auto":"smooth",block:"start"});
+      history.replaceState(null,"",id);
+    }
+  });
+});
+addEventListener("load",()=>{ if(location.hash && $(location.hash)) $(location.hash).scrollIntoView({block:"start"}); });
+
+/* reveal on scroll */
+const io=new IntersectionObserver((es)=>es.forEach(en=>{ if(en.isIntersecting){en.target.classList.add("in"); io.unobserve(en.target);} }),{threshold:.16});
+$$(".reveal").forEach(el=>io.observe(el));
+
+/* =========================================================================
+   AUDIO — Web Audio (Karplus-Strong) with unlock + toggle
+   ========================================================================= */
+const Audio_={ ctx:null, master:null, reverb:null, buffers:[], enabled:false, active:0, srcEls:[] };
+function buildReverbIR(ctx, seconds=0.9, decay=3.2){
+  const rate=ctx.sampleRate, len=Math.floor(rate*seconds);
+  const buf=ctx.createBuffer(2,len,rate);
+  for(let ch=0;ch<2;ch++){ const d=buf.getChannelData(ch);
+    for(let i=0;i<len;i++){ d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay); } }
+  return buf;
+}
+function ksBuffer(ctx, freq, dur=1.6){
+  const rate=ctx.sampleRate, N=Math.max(2,Math.round(rate/freq));
+  const out=ctx.createBuffer(1,Math.floor(rate*dur),rate);
+  const d=out.getChannelData(0);
+  const line=new Float32Array(N);
+  for(let i=0;i<N;i++) line[i]=Math.random()*2-1;
+  let idx=0; const damp=0.9965;
+  for(let i=0;i<d.length;i++){
+    const cur=line[idx], nxt=line[(idx+1)%N];
+    const v=(cur+nxt)*0.5*damp;
+    d[i]=cur*Math.pow(1-i/d.length,0.6);
+    line[idx]=v; idx=(idx+1)%N;
+  }
+  return out;
+}
+async function initAudio(){
+  if(Audio_.ctx) return;
+  const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+  const ctx=new AC(); Audio_.ctx=ctx;
+  const master=ctx.createGain(); master.gain.value=CONFIG.audio.masterVolume;
+  const conv=ctx.createConvolver(); conv.buffer=buildReverbIR(ctx);
+  const wet=ctx.createGain(); wet.gain.value=0.18;
+  const dry=ctx.createGain(); dry.gain.value=0.9;
+  master.connect(dry).connect(ctx.destination);
+  master.connect(conv).connect(wet).connect(ctx.destination);
+  Audio_.master=master;
+  // preload real samples if provided, else synth
+  Audio_.buffers = await Promise.all(CONFIG.audio.frequencies.map(async (f,i)=>{
+    const url=CONFIG.audio.strings[i];
+    if(url){ try{ const r=await fetch(url); const ab=await r.arrayBuffer(); return await ctx.decodeAudioData(ab);}catch(e){} }
+    return ksBuffer(ctx,f);
+  }));
+}
+function pluck(i, velocity=0.5){
+  const A=Audio_; if(!A.enabled||!A.ctx||!A.buffers[i]) return;
+  if(A.active>=6) return;
+  const src=A.ctx.createBufferSource(); src.buffer=A.buffers[i];
+  const g=A.ctx.createGain();
+  const v=Math.max(0.12,Math.min(1,velocity));
+  g.gain.value=0.0001;
+  const now=A.ctx.currentTime;
+  g.gain.setValueAtTime(0.0001,now);
+  g.gain.exponentialRampToValueAtTime(0.4*v+0.12, now+0.008);
+  src.connect(g).connect(A.master);
+  src.start(); A.active++;
+  src.onended=()=>{A.active=Math.max(0,A.active-1);};
+}
+function updateSoundLabel(){
+  const t=I18N[currentLang]||I18N.en;
+  $("#soundLabel").textContent = Audio_.enabled? t["sound.on"] : t["sound.off"];
+}
+const soundBtn=$("#soundToggle");
+soundBtn.addEventListener("click", async ()=>{
+  await initAudio();
+  if(Audio_.ctx && Audio_.ctx.state==="suspended") await Audio_.ctx.resume();
+  Audio_.enabled=!Audio_.enabled;
+  soundBtn.classList.toggle("on",Audio_.enabled);
+  soundBtn.setAttribute("aria-pressed",String(Audio_.enabled));
+  updateSoundLabel();
+});
+
+/* =========================================================================
+   HERO INTERACTION — cursor mask, strings, fantasy intensity, magpie
+   ========================================================================= */
+const stage=$("#stage");
+const fantasy=$("#gFantasy");
+const hero=$("#home");
+const fxLayer=$("#fxLayer");
+
+const state={
+  mx:50,my:50,       // mask position in %
+  tx:50,ty:50,       // target in %
+  inside:false,
+  maskR:0, maskRTarget:0,
+  intensity:0,       // 0..1 fantasy accumulation
+  lastX:0,lastY:0,lastT:0,speed:0,
+  onString:new Array(6).fill(false),
+  magpieBusy:false, magpieCooldown:0,
+  petals:[], sparks:[],
+};
+
+// geometry helpers in stage-local px (viewBox 400x1000 mapped to element)
+function stageMetrics(){
+  const r=stage.getBoundingClientRect();
+  return {r, sx:r.width/400, sy:r.height/1000};
+}
+function pointFromEvent(clientX,clientY){
+  const {r}=stageMetrics();
+  return {px:(clientX-r.left)/r.width*400, py:(clientY-r.top)/r.height*1000,
+          pctX:(clientX-r.left)/r.width*100, pctY:(clientY-r.top)/r.height*100, r};
+}
+// is a viewBox point roughly within guitar silhouette (body+neck+head)
+function inGuitar(px,py){
+  if(px<150 && py<430) return false;
+  // neck/head band
+  if(py<430) return px>150 && px<250;
+  // body bounding (approx ellipse of the two bouts)
+  const bx=200, by=694, rx=175, ry=270;
+  return ((px-bx)**2)/(rx*rx) + ((py-by)**2)/(ry*ry) <= 1.03;
+}
+
+/* pointer handling */
+function onMove(clientX,clientY){
+  const p=pointFromEvent(clientX,clientY);
+  const now=performance.now();
+  const dt=Math.max(1, now-state.lastT);
+  const dist=Math.hypot(clientX-state.lastX, clientY-state.lastY);
+  state.speed = dist/dt*16; // ~px per frame
+  state.lastX=clientX; state.lastY=clientY; state.lastT=now;
+
+  const inside = inGuitar(p.px,p.py);
+  state.inside=inside;
+  if(inside){
+    state.tx=p.pctX; state.ty=p.pctY;
+    hero.classList.add("touched");
+    // slow movement -> stronger reveal + intensity growth
+    const slow = state.speed<7;
+    state.maskRTarget = slow? 190 : 96;
+    if(slow) state.intensity=Math.min(1,state.intensity+0.018);
+    else state.intensity=Math.min(1,state.intensity+0.004);
+    // occasionally emit petals/sparks when slow
+    if(slow && !reduceMotion && Math.random()<0.16) emitParticle(p.px,p.py);
+    // strings
+    checkStrings(p.px,p.py);
+    // magpie trigger near soundhole + high intensity
+    const nearHole = Math.hypot(p.px-200,p.py-SOUND_CY) < SOUND_R+26;
+    if((state.intensity>0.72 || (nearHole && slow && state.intensity>0.5)) && !state.magpieBusy && now>state.magpieCooldown){
+      triggerMagpie();
+    }
+  }else{
+    state.maskRTarget=0;
+    state.onString.fill(false);
+  }
+}
+function onLeave(){ state.inside=false; state.maskRTarget=0; state.onString.fill(false); }
+
+if(!isTouch){
+  stage.addEventListener("mousemove",e=>onMove(e.clientX,e.clientY));
+  stage.addEventListener("mouseleave",onLeave);
+}else{
+  // touch: horizontal / on-guitar traces = interaction; vertical swipe scrolls
+  let startX=0,startY=0,decided=null;
+  stage.addEventListener("touchstart",e=>{
+    const t=e.touches[0]; startX=t.clientX; startY=t.clientY; decided=null;
+    state.lastX=t.clientX; state.lastY=t.clientY; state.lastT=performance.now();
+  },{passive:true});
+  stage.addEventListener("touchmove",e=>{
+    const t=e.touches[0];
+    if(decided===null){
+      const dx=Math.abs(t.clientX-startX), dy=Math.abs(t.clientY-startY);
+      if(dx>dy+4) decided="trace"; else if(dy>dx+4) decided="scroll";
+    }
+    if(decided==="trace"){ e.preventDefault(); onMove(t.clientX,t.clientY); }
+  },{passive:false});
+  stage.addEventListener("touchend",()=>{ onLeave(); },{passive:true});
+  // long-press strengthens
+  let lp=null;
+  stage.addEventListener("touchstart",()=>{ lp=setTimeout(()=>{ state.intensity=Math.min(1,state.intensity+0.4);},550); },{passive:true});
+  stage.addEventListener("touchend",()=>{ clearTimeout(lp); });
+}
+
+/* strings: play when cursor crosses (off->on transition) */
+function checkStrings(px,py){
+  if(py<NUT_Y-6 || py>BRIDGE_Y+6) { state.onString.fill(false); return; }
+  const tt=(py-NUT_Y)/(BRIDGE_Y-NUT_Y);
+  for(let i=0;i<6;i++){
+    const xAt = strNutX(i) + (strBridgeX(i)-strNutX(i))*tt;
+    const on = Math.abs(px-xAt) < 5.2;
+    if(on && !state.onString[i]){
+      pluck(i, 0.35 + Math.min(0.6, state.speed/24));
+      vibrateString(i);
+    }
+    state.onString[i]=on;
+  }
+}
+
+/* string vibration overlay (drawn on fantasy+normal via a light svg line flash) */
+let stringFlash=null;
+function ensureStringFlash(){
+  if(stringFlash) return stringFlash;
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("viewBox",VIEWBOX); svg.setAttribute("preserveAspectRatio","xMidYMid meet");
+  Object.assign(svg.style,{position:"absolute",inset:"0",width:"100%",height:"100%",pointerEvents:"none",zIndex:"3"});
+  for(let i=0;i<6;i++){
+    const ln=document.createElementNS("http://www.w3.org/2000/svg","line");
+    ln.setAttribute("x1",strNutX(i)); ln.setAttribute("y1",NUT_Y);
+    ln.setAttribute("x2",strBridgeX(i)); ln.setAttribute("y2",BRIDGE_Y);
+    ln.setAttribute("stroke","rgba(240,225,180,.75)"); ln.setAttribute("stroke-width",0.8+i*0.18);
+    ln.style.opacity="0.35"; ln.dataset.i=i;
+    svg.appendChild(ln);
+  }
+  stage.appendChild(svg); stringFlash=svg; return svg;
+}
+ensureStringFlash();
+function vibrateString(i){
+  if(reduceMotion) return;
+  const ln=stringFlash.children[i];
+  ln.animate([
+    {opacity:.9, filter:"drop-shadow(0 0 3px rgba(255,235,180,.9))"},
+    {opacity:.35, filter:"none"}
+  ],{duration:420,easing:"ease-out"});
+  // little lateral shimmer
+  const mid= (NUT_Y+BRIDGE_Y)/2;
+  ln.animate([
+    {transform:"translateX(0)"},{transform:"translateX(1.6px)"},{transform:"translateX(-1.2px)"},{transform:"translateX(0)"}
+  ],{duration:220,iterations:2,easing:"ease-in-out"});
+}
+
+/* particles: petals + gold sparks, limited count */
+function emitParticle(px,py){
+  const MAXP = isTouch?10:22;
+  if(state.petals.length+state.sparks.length > MAXP) return;
+  const petal = Math.random()<0.5;
+  const el=document.createElement("div");
+  const {sx,sy}=stageMetrics();
+  const x=px, y=py;
+  if(petal){
+    el.className="petal";
+    const col=["#e8756b","#e3a1b0","#f4ede0","#c2447a"][Math.floor(Math.random()*4)];
+    el.innerHTML=`<svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 0 C10 4 10 10 7 14 C4 10 4 4 7 0Z" fill="${col}"/></svg>`;
+    state.petals.push(spawn(el,x,y,true));
+  }else{
+    el.className="spark";
+    el.innerHTML=`<svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="2.4" fill="#f6d878"/></svg>`;
+    state.sparks.push(spawn(el,x,y,false));
+  }
+}
+function spawn(el,vx,vy,isPetal){
+  fxLayer.appendChild(el);
+  const dur = isPetal? 2600+Math.random()*1800 : 1600+Math.random()*1200;
+  const driftX=(Math.random()-0.5)*80;
+  const rise = isPetal? 60+Math.random()*90 : 30+Math.random()*60;
+  const {sx,sy}=stageMetrics();
+  // position in element px (fxLayer spans stage with negative inset; use % of 400x1000)
+  el.style.left=(vx/400*100)+"%"; el.style.top=(vy/1000*100)+"%";
+  const anim=el.animate([
+    {transform:`translate(-50%,-50%) translate(0,0) rotate(0deg)`, opacity:0},
+    {opacity:.9, offset:.15},
+    {transform:`translate(-50%,-50%) translate(${driftX}px,${-rise}px) rotate(${(Math.random()-.5)*220}deg)`, opacity:0}
+  ],{duration:dur,easing:"cubic-bezier(.3,.6,.4,1)"});
+  anim.onfinish=()=>{ el.remove(); };
+  return {el,anim};
+}
+
+/* MAGPIE — hidden reward */
+let magpieEl=null;
+function magpieSVG(){
+  if(CONFIG.assets.magpie) return `<img src="${CONFIG.assets.magpie}" alt="magpie" style="width:100%;height:100%;object-fit:contain">`;
+  // stylized magpie: black/white with a hint of iridescent blue
+  return `<svg viewBox="0 0 120 120" width="100%" height="100%">
+    <g>
+      <path d="M60 44 C48 44 40 52 40 62 C40 70 46 76 54 78 L44 96 C52 92 58 86 60 80 C62 86 68 92 76 96 L66 78 C74 76 80 70 80 62 C80 52 72 44 60 44Z" fill="#12100e"/>
+      <path d="M60 46 C67 46 73 51 76 58 L64 66 C60 60 58 54 60 46Z" fill="#f3efe6"/>
+      <ellipse cx="60" cy="40" rx="9" ry="8" fill="#12100e"/>
+      <path d="M69 40 L82 37 L70 44Z" fill="#2a2622"/>
+      <circle cx="63" cy="38" r="1.6" fill="#f6d878"/>
+      <path d="M54 78 C50 92 44 104 34 112" stroke="#12100e" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M54 78 C51 90 47 100 40 108" stroke="#1a3a5a" stroke-width="2" fill="none" opacity=".6"/>
+    </g>
+  </svg>`;
+}
+function triggerMagpie(){
+  state.magpieBusy=true;
+  // soundhole flash
+  flashSoundhole();
+  // burst of petals from the hole
+  for(let i=0;i<6;i++) setTimeout(()=>emitParticle(200+(Math.random()-.5)*40, SOUND_CY+(Math.random()-.5)*20), i*70);
+  setTimeout(()=>{
+    if(!magpieEl){ magpieEl=document.createElement("div");
+      Object.assign(magpieEl.style,{position:"absolute",width:"22%",aspectRatio:"1/1",zIndex:"7",pointerEvents:"none",left:"58%",top:"6%",opacity:"0",transformOrigin:"center"});
+      magpieEl.innerHTML=magpieSVG(); stage.appendChild(magpieEl);
+    }
+    magpieEl.style.left="58%"; magpieEl.style.top="4%";
+    // appear + perch on shoulder/head area
+    magpieEl.animate([
+      {opacity:0, transform:"translateY(-16px) scale(.7) rotate(-6deg)"},
+      {opacity:1, transform:"translateY(0) scale(1) rotate(0deg)"}
+    ],{duration:reduceMotion?1:900,easing:"cubic-bezier(.2,.7,.3,1)",fill:"forwards"});
+    // small idle bob
+    const idle=magpieEl.animate([{transform:"translateY(0)"},{transform:"translateY(-3px)"},{transform:"translateY(0)"}],{duration:1400,iterations:2,easing:"ease-in-out"});
+    // fly away after a few seconds
+    setTimeout(()=>{
+      const fly=magpieEl.animate([
+        {opacity:1, transform:"translate(0,0) scale(1) rotate(0deg)"},
+        {opacity:0, transform:"translate(120px,-160px) scale(.5) rotate(18deg)"}
+      ],{duration:reduceMotion?1:1400,easing:"cubic-bezier(.4,0,.7,.2)",fill:"forwards"});
+      fly.onfinish=()=>{
+        state.magpieBusy=false;
+        state.magpieCooldown=performance.now()+12000; // 再発生まで少し置く
+        // 幻想もゆっくり引く
+        state.intensity=Math.min(state.intensity,0.5);
+      };
+    }, reduceMotion?1200:3400);
+  }, 520);
+}
+function flashSoundhole(){
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("viewBox",VIEWBOX);
+  Object.assign(svg.style,{position:"absolute",inset:"0",width:"100%",height:"100%",pointerEvents:"none",zIndex:"6"});
+  const c=document.createElementNS("http://www.w3.org/2000/svg","circle");
+  c.setAttribute("cx",200); c.setAttribute("cy",SOUND_CY); c.setAttribute("r",SOUND_R-4);
+  c.setAttribute("fill","rgba(255,240,190,.8)");
+  svg.appendChild(c); stage.appendChild(svg);
+  c.animate([{opacity:0,r:SOUND_R-20},{opacity:1,offset:.3},{opacity:0}],{duration:1400,easing:"ease-out"}).onfinish=()=>svg.remove();
+}
+
+/* =========================================================================
+   RAF loop — ease mask + intensity, drive fantasy visuals
+   ========================================================================= */
+function lerp(a,b,n){return a+(b-a)*n;}
+function loop(){
+  // ease mask position (0.15–0.3s lag ≈ factor ~0.14)
+  state.mx=lerp(state.mx,state.tx,0.14);
+  state.my=lerp(state.my,state.ty,0.14);
+  // ease mask radius; when leaving, shrink slowly (~0.8–1.5s)
+  const rSpeed = state.maskRTarget>0 ? 0.16 : 0.04;
+  state.maskR=lerp(state.maskR,state.maskRTarget,rSpeed);
+  // intensity decays when not adding
+  if(!state.inside || state.speed>7) state.intensity=Math.max(0,state.intensity-0.006);
+
+  fantasy.style.setProperty("--mx",state.mx+"%");
+  fantasy.style.setProperty("--my",state.my+"%");
+  fantasy.style.setProperty("--mask-r",state.maskR.toFixed(1)+"px");
+
+  // intensity -> gold glow / bloom of flowers within fantasy svg
+  const svg=fantasy.querySelector("svg");
+  if(svg){
+    const flowers=svg.querySelector(".fx-flowers");
+    if(flowers){ const s=0.4+state.intensity*0.6; flowers.style.transformBox="fill-box";
+      flowers.setAttribute("opacity",(0.3+state.intensity*0.7).toFixed(2)); }
+    const aura=svg.querySelector('ellipse[fill="url(#aura)"]');
+    if(aura) aura.setAttribute("opacity",(0.25+state.intensity*0.75).toFixed(2));
+  }
+  requestAnimationFrame(loop);
+}
+
+/* =========================================================================
+   Reduced motion: show a soft static fantasy hint, skip heavy loop parts
+   ========================================================================= */
+function boot(){
+  renderRep(); renderMedia(); renderAwards();
+  applyLang("en");
+  if(reduceMotion){
+    // 静止：幻想版をごく薄く常時見せる代わりに、通常版のみ（禁止事項に配慮し全体は見せない）
+    fantasy.style.setProperty("--mask-r","0px");
+    fantasy.style.opacity="0";
+  }else{
+    requestAnimationFrame(loop);
+  }
+}
+boot();
+</script>
+</body>
+</html>
