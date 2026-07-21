@@ -38,8 +38,9 @@
   body,html{min-height:100%}
   body{
     background:
-      radial-gradient(1200px 800px at 50% -10%, #241708 0%, rgba(36,23,8,0) 60%),
-      linear-gradient(180deg,var(--bg-1) 0%, var(--bg-0) 40%, #0c0805 100%);
+      radial-gradient(900px 620px at 50% 30%, rgba(74,44,14,.55) 0%, rgba(50,30,10,0) 62%),
+      radial-gradient(1300px 900px at 50% -12%, #2a1a09 0%, rgba(36,23,8,0) 58%),
+      linear-gradient(180deg,#160e07 0%, #0c0805 46%, #080503 100%);
     color:var(--ink);
     font-family:var(--sans);
     font-weight:300;
@@ -48,6 +49,12 @@
     overflow-x:hidden;
     -webkit-font-smoothing:antialiased;
   }
+  /* cinematic vignette + film grain (静的・カーソル非連動) */
+  body::before{content:"";position:fixed;inset:0;z-index:40;pointer-events:none;
+    background:radial-gradient(125% 95% at 50% 42%, transparent 52%, rgba(0,0,0,.5) 100%);}
+  .grain{position:fixed;inset:-50%;z-index:41;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+  @media (prefers-reduced-motion:reduce){.grain{display:none}}
   h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:.01em;line-height:1.15}
   a{color:inherit;text-decoration:none}
   ::selection{background:rgba(201,162,74,.28);color:#fff}
@@ -111,6 +118,10 @@
 
   /* guitar stage */
   .stage-wrap{position:relative;z-index:4;width:100%;display:flex;justify-content:center}
+  .stage-wrap::before{content:"";position:absolute;top:48%;left:50%;transform:translate(-50%,-50%);
+    width:min(60vh,720px);height:min(72vh,860px);pointer-events:none;z-index:-1;
+    background:radial-gradient(closest-side, rgba(120,78,26,.42), rgba(90,58,20,.14) 55%, transparent 72%);
+    filter:blur(6px);}
   .guitar-stage{
     position:relative;width:clamp(230px,34vh,420px);aspect-ratio:400/1000;
     filter:drop-shadow(0 40px 60px rgba(0,0,0,.6));
@@ -265,6 +276,7 @@
 </style>
 </head>
 <body>
+<div class="grain" aria-hidden="true"></div>
 
 <!-- ===================== NAV ===================== -->
 <header class="nav" id="nav">
@@ -523,7 +535,7 @@ const I18N={
    ========================================================================= */
 const VIEWBOX="0 0 400 1000";
 // 共通ボディ・パス（図形を両バージョンで完全一致させるため一度だけ定義）
-const BODY_PATH="M200,430 C260,430 286,468 291,520 C295,562 302,602 286,646 C276,678 292,722 316,762 C346,802 351,872 320,916 C300,946 250,958 200,958 C150,958 100,946 80,916 C49,872 54,802 84,762 C108,722 124,678 114,646 C98,602 105,562 109,520 C114,468 140,430 200,430 Z";
+const BODY_PATH="M200,446 C250,446 300,470 306,528 C311,572 300,612 286,648 C274,678 288,724 312,762 C348,808 356,878 322,922 C298,952 250,966 200,966 C150,966 102,952 78,922 C44,878 52,808 88,762 C112,724 126,678 114,648 C100,612 89,572 94,528 C100,470 150,446 200,446 Z";
 const NECK_X=176, NECK_W=48, NUT_Y=126, BRIDGE_Y=792, SOUND_CY=612, SOUND_R=54;
 // 弦の nut/bridge での x 座標
 const STR_NUT=[184,191.2,198.4,205.6,212.8,220].map(v=>v-3); // slight center offset handled below
