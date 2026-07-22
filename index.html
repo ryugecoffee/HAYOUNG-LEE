@@ -103,6 +103,9 @@
   /* トップ背景：アリカンテの夜景を「カーソルが通った跡」に残す（トレイル／canvas描画）
      初期は真っ黒。なぞった跡に街あかりが残り、後からゆっくり黒へ戻る。 */
   .hero-canvas{position:absolute;inset:0;z-index:0;pointer-events:none;display:block}
+  /* ギター周辺以外をわずかに暗く（コントラストで主役を立てる／背景画像は変えない） */
+  .hero-dim{position:absolute;inset:0;z-index:2;pointer-events:none;
+    background:radial-gradient(44% 52% at 57% 48%, rgba(4,3,6,0) 42%, rgba(4,3,6,.12) 100%);}
   /* 金の塵レイヤー（アリカンテの街灯りと馴染む・z1） */
   .atmos{position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none}
   .atmos .glow{position:absolute;border-radius:50%;filter:blur(72px);mix-blend-mode:screen;will-change:transform}
@@ -144,15 +147,17 @@
   @media (max-width:820px){
     .hero-copy{position:static;transform:none;max-width:640px;text-align:center;margin-bottom:6px;order:-1}
     .hero{grid-template-rows:auto 1fr;gap:8px}
+    .stage-wrap{transform:none}          /* モバイルは中央 */
+    .hero-dim{background:radial-gradient(60% 46% at 50% 56%, rgba(4,3,6,0) 42%, rgba(4,3,6,.12) 100%)}
   }
 
-  /* guitar stage */
-  .stage-wrap{position:relative;z-index:4;width:100%;display:flex;justify-content:center}
-  /* ギターを自然に包む暖色の光（硬い光芒はなし・柔らかいにじみのみ） */
+  /* guitar stage — 左：文字／右：ギター。少し右へ寄せる */
+  .stage-wrap{position:relative;z-index:4;width:100%;display:flex;justify-content:center;transform:translateX(7vw)}
+  /* ギターを包む暖色のシネマ・スポット（中心明るく→周辺へ自然減衰） */
   .stage-wrap::before{content:"";position:absolute;top:46%;left:50%;transform:translate(-50%,-50%);
-    width:min(66vh,820px);height:min(100vh,1240px);pointer-events:none;z-index:-1;
-    background:radial-gradient(46% 40% at 50% 46%, rgba(214,150,76,.34), rgba(150,100,46,.12) 55%, transparent 78%);
-    filter:blur(26px);}
+    width:min(64vh,800px);height:min(104vh,1300px);pointer-events:none;z-index:-1;
+    background:radial-gradient(46% 40% at 50% 46%, rgba(235,172,92,.46), rgba(176,116,52,.17) 50%, rgba(120,78,30,.05) 70%, transparent 80%);
+    filter:blur(28px);}
   .guitar-stage{
     /* ==== 植物版ギターの位置合わせ（画像を見ながらここだけ調整すればOK）====
        --vine-scale-x   : 植物版の横倍率（1で等倍）
@@ -167,11 +172,15 @@
     --vine-offset-y: 0px;
     --mask-radius: 72px;
     position:relative;
-    height:clamp(360px,76vh,820px);
+    height:clamp(440px,90vh,1000px);   /* 主役として大きく（約+18〜30%） */
     aspect-ratio:685/1793;          /* = 通常版ギター画像の縦横比 */
     width:auto;margin:0 auto;
-    /* ライトアップ：影＋暖色の柔らかい縁取りの光 */
-    filter:drop-shadow(0 40px 60px rgba(0,0,0,.6)) drop-shadow(0 0 34px rgba(255,198,120,.20));
+    /* ライトアップ：影＋暖色の柔らかいグロー＋輪郭に“ごく弱い冷たいリムライト” */
+    filter:
+      drop-shadow(0 48px 70px rgba(0,0,0,.7))
+      drop-shadow(0 0 40px rgba(255,198,120,.18))
+      drop-shadow(-4px 0 3px rgba(178,206,255,.22))   /* 左輪郭：青白い薄いリム */
+      drop-shadow(4px 0 3px rgba(178,206,255,.12));   /* 右輪郭：さらに弱く */
     touch-action:pan-y;             /* 縦スクロールを妨げない */
   }
   .guitar-layer{position:absolute;inset:0;width:100%;height:100%}
@@ -197,7 +206,7 @@
     filter:brightness(1.18) saturate(1.08) drop-shadow(0 0 6px rgba(232,192,92,.45));
   }
   @media (max-width:640px){
-    .guitar-stage{ height:auto; width:min(80vw,340px); }
+    .guitar-stage{ height:auto; width:min(86vw,380px); }
   }
   .hint{
     position:absolute;left:50%;bottom:-34px;transform:translateX(-50%);
@@ -377,6 +386,7 @@
   <!-- トップ最背面：アリカンテの夜景（暗く落として敷く）＋ 金の塵 -->
   <canvas class="hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>
   <div class="atmos" id="atmos" aria-hidden="true"></div>
+  <div class="hero-dim" aria-hidden="true"></div>
   <div class="hero-copy">
     <div class="eyebrow" data-i18n="hero.eyebrow">Classical Guitarist</div>
     <h1>HAYOUNG<br>LEE</h1>
