@@ -947,6 +947,59 @@ const Strings = (function(){
 })();
 
 /* =========================================================================
+   Particles — 光の粒・花びらがなぞった箇所からふわっと舞う（素材不要 / DOM+WAAPI）
+   ・prefers-reduced-motion では無効
+   ========================================================================= */
+const Particles = (function(){
+  const reduce = reduceMotion;
+  let layer=null, last=0;
+  function ensure(){
+    if(layer) return layer;
+    const stage=$("#stage"); if(!stage) return null;
+    const d=document.createElement("div");
+    Object.assign(d.style,{position:"absolute",inset:"0",pointerEvents:"none",overflow:"visible",zIndex:"7"});
+    stage.appendChild(d); layer=d; return d;
+  }
+  function spawn(x,y){
+    const L=ensure(); if(!L) return;
+    const petal = Math.random()<0.34;                       // 3割ほど花びら、他は光の粒
+    const el=document.createElement("div");
+    const sz = petal ? (6+Math.random()*5) : (3+Math.random()*4);
+    const hue = Math.random()<0.5 ? "255,224,150" : "255,240,205";
+    Object.assign(el.style,{
+      position:"absolute", left:x+"px", top:y+"px",
+      width:sz+"px", height:(petal?sz*1.5:sz)+"px",
+      pointerEvents:"none", willChange:"transform,opacity", opacity:"0",
+    });
+    if(petal){
+      el.style.background=`linear-gradient(135deg, rgba(${hue},.95), rgba(205,155,60,.55))`;
+      el.style.borderRadius="0 100% 0 100%";
+      el.style.boxShadow="0 0 5px rgba(255,220,150,.45)";
+    }else{
+      el.style.background=`radial-gradient(circle, rgba(${hue},.95) 0%, rgba(${hue},.5) 42%, transparent 72%)`;
+      el.style.borderRadius="50%";
+    }
+    L.appendChild(el);
+    const dx=(Math.random()*2-1)*24, dy=-(38+Math.random()*70);
+    const rot=(Math.random()*2-1)*200, dur=1200+Math.random()*1200;
+    const anim=el.animate([
+      { opacity:0, transform:`translate(-50%,-50%) translate(0,0) rotate(0deg) scale(.5)` },
+      { opacity:1, offset:.18, transform:`translate(-50%,-50%) translate(${(dx*0.4).toFixed(1)}px,${(dy*0.35).toFixed(1)}px) rotate(${(rot*0.3).toFixed(0)}deg) scale(1)` },
+      { opacity:0, transform:`translate(-50%,-50%) translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px) rotate(${rot.toFixed(0)}deg) scale(${petal?0.9:0.6})` }
+    ],{ duration:dur, easing:"cubic-bezier(.25,.6,.2,1)", fill:"forwards" });
+    anim.onfinish=()=>el.remove();
+  }
+  function emit(x,y,now){
+    if(reduce) return;
+    if(now-last < 80) return;                                // 発生頻度の上限
+    last=now;
+    if(Math.random()<0.78) spawn(x+(Math.random()*2-1)*6, y+(Math.random()*2-1)*6);
+    if(Math.random()<0.22) spawn(x+(Math.random()*2-1)*14, y+(Math.random()*2-1)*14);
+  }
+  return { emit };
+})();
+
+/* =========================================================================
    GuitarReveal — カーソル追従の円形マスクで植物版ギターを見せる（マスク実装のみ）
    責務: 2枚の画像表示 / ポインタ座標取得 / マスク制御 / pointerイベント
    ・初期は通常版のみ（--mask-r:0）
@@ -1007,6 +1060,7 @@ const Strings = (function(){
     const speed = Math.hypot(clientX-lastCX, clientY-lastCY)/dt*16;
     lastCX=clientX; lastCY=clientY; lastT=now;
     Strings.trace(p.x/p.w, p.y/p.h, speed);
+    Particles.emit(p.x, p.y, now);   // 光の粒・花びら
     ensure();
   }
   function leave(){ s.active = false; s.tr = 0; s.seeded = false; Strings.reset(); ensure(); }
