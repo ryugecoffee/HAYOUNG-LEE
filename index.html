@@ -1255,7 +1255,7 @@ const Magpie = (function(){
   img.src=CONFIG.assets.heroBg;
 
   const BRUSH=70;          // 筆（跡）の半径 — 円の大きさ
-  const DECAY=0.032;       // 1フレームで薄くする量（大きいほど早く消える＝弱く）
+  const DECAY=0.075;       // 1フレームで薄くする量（大きいほど早く真っ暗に戻る）
   let W=0,H=0,dpr=Math.min(2,window.devicePixelRatio||1);
   let lastX=null,lastY=null, idle=999, raf=0;
 
@@ -1308,7 +1308,7 @@ const Magpie = (function(){
     }
     ctx.globalCompositeOperation="source-over";
     idle++;
-    if(idle>320){ raf=0; ctx.clearRect(0,0,W,H); return; }  // 跡が消えたら停止
+    if(idle>140){ raf=0; mctx.clearRect(0,0,W,H); ctx.clearRect(0,0,W,H); return; }  // 跡が消えたら完全に真っ暗にして停止
     raf=requestAnimationFrame(frame);
   }
   function ensure(){ if(!raf) raf=requestAnimationFrame(frame); }
