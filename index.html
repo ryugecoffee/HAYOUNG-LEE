@@ -1000,6 +1000,81 @@ const Particles = (function(){
 })();
 
 /* =========================================================================
+   Flowers — カーソルを留めると蔦から花が咲く（素材不要 / SVG+WAAPI）
+   ・最初から満開にせず、留めた所からポツポツ咲いて消える（＝目覚める演出）
+   ・ゆっくり動く（linger）ほど咲きやすい
+   ・prefers-reduced-motion では無効
+   ========================================================================= */
+const Flowers = (function(){
+  const reduce = reduceMotion;
+  let layer=null, last=0;
+  // 地中海の花：ジャスミン白 / オレンジの花 / ブーゲンビリア珊瑚 / 淡桃
+  const PAL=[
+    {petal:"rgba(255,252,246,.96)", core:"rgba(240,198,88,1)"},
+    {petal:"rgba(255,247,232,.95)", core:"rgba(238,190,80,1)"},
+    {petal:"rgba(244,150,120,.92)", core:"rgba(255,222,140,1)"},
+    {petal:"rgba(248,196,205,.92)", core:"rgba(240,198,88,1)"},
+  ];
+  function ensure(){
+    if(layer) return layer;
+    const stage=$("#stage"); if(!stage) return null;
+    const d=document.createElement("div");
+    Object.assign(d.style,{position:"absolute",inset:"0",pointerEvents:"none",overflow:"visible",zIndex:"6"});
+    stage.appendChild(d); layer=d; return d;
+  }
+  function svgFlower(size, c){
+    const NS="http://www.w3.org/2000/svg";
+    const svg=document.createElementNS(NS,"svg");
+    svg.setAttribute("viewBox","-50 -50 100 100");
+    svg.setAttribute("width",size); svg.setAttribute("height",size);
+    for(let i=0;i<5;i++){
+      const p=document.createElementNS(NS,"ellipse");
+      p.setAttribute("cx","0"); p.setAttribute("cy","-20");
+      p.setAttribute("rx","10.5"); p.setAttribute("ry","19");
+      p.setAttribute("fill",c.petal);
+      p.setAttribute("transform",`rotate(${i*72})`);
+      svg.appendChild(p);
+    }
+    const core=document.createElementNS(NS,"circle");
+    core.setAttribute("r","7.5"); core.setAttribute("fill",c.core);
+    svg.appendChild(core);
+    return svg;
+  }
+  function bloomAt(x,y){
+    const L=ensure(); if(!L) return;
+    const c=PAL[(Math.random()*PAL.length)|0];
+    const size=16+Math.random()*12;
+    const el=svgFlower(size, c);
+    Object.assign(el.style,{
+      position:"absolute", left:x+"px", top:y+"px",
+      pointerEvents:"none", willChange:"transform,opacity", opacity:"0",
+      filter:"drop-shadow(0 0 3px rgba(255,228,170,.5))",
+    });
+    L.appendChild(el);
+    const drift=(Math.random()*2-1)*6, spin=(Math.random()*2-1)*10;
+    const anim=el.animate([
+      { opacity:0, transform:`translate(-50%,-50%) scale(0) rotate(${(-30+spin).toFixed(0)}deg)` },
+      { opacity:1, offset:.16, transform:`translate(-50%,-50%) scale(1.14) rotate(${(spin*0.4).toFixed(0)}deg)` },
+      { opacity:1, offset:.24, transform:`translate(-50%,-50%) scale(1) rotate(0deg)` },
+      { opacity:1, offset:.62, transform:`translate(-50%,-50%) scale(1) rotate(0deg)` },
+      { opacity:0, offset:1, transform:`translate(-50%,calc(-50% - 6px)) translateX(${drift.toFixed(1)}px) scale(.94) rotate(0deg)` }
+    ],{ duration:2400+Math.random()*900, easing:"cubic-bezier(.22,.7,.2,1)", fill:"forwards" });
+    anim.onfinish=()=>el.remove();
+  }
+  function bloom(x,y,now,speed){
+    if(reduce) return;
+    const gap = 360;                               // 咲く最短間隔
+    if(now-last < gap) return;
+    // ゆっくり（linger）ほど咲きやすい
+    const prob = (speed||0) < 6 ? 0.55 : 0.12;
+    if(Math.random() > prob) return;
+    last=now;
+    bloomAt(x+(Math.random()*2-1)*8, y+(Math.random()*2-1)*8);
+  }
+  return { bloom };
+})();
+
+/* =========================================================================
    GuitarReveal — カーソル追従の円形マスクで植物版ギターを見せる（マスク実装のみ）
    責務: 2枚の画像表示 / ポインタ座標取得 / マスク制御 / pointerイベント
    ・初期は通常版のみ（--mask-r:0）
@@ -1061,6 +1136,7 @@ const Particles = (function(){
     lastCX=clientX; lastCY=clientY; lastT=now;
     Strings.trace(p.x/p.w, p.y/p.h, speed);
     Particles.emit(p.x, p.y, now);   // 光の粒・花びら
+    Flowers.bloom(p.x, p.y, now, speed); // 蔦から花が咲く
     ensure();
   }
   function leave(){ s.active = false; s.tr = 0; s.seeded = false; Strings.reset(); ensure(); }
