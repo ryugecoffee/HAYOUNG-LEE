@@ -1254,8 +1254,8 @@ const Magpie = (function(){
   img.onload=()=>{ ready=true; };
   img.src=CONFIG.assets.heroBg;
 
-  const BRUSH=74;          // 筆（跡）の半径 — 円の大きさ
-  const DECAY=0.020;       // 1フレームで薄くする量（小さいほど跡が長く残る）
+  const BRUSH=70;          // 筆（跡）の半径 — 円の大きさ
+  const DECAY=0.032;       // 1フレームで薄くする量（大きいほど早く消える＝弱く）
   let W=0,H=0,dpr=Math.min(2,window.devicePixelRatio||1);
   let lastX=null,lastY=null, idle=999, raf=0;
 
@@ -1301,9 +1301,9 @@ const Magpie = (function(){
       ctx.globalCompositeOperation="source-in";
       const [dx,dy,dw,dh]=coverRect();
       ctx.drawImage(img,dx,dy,dw,dh);
-      ctx.globalCompositeOperation="source-atop";      // 可読性のための暗幕（跡の中だけ）
+      ctx.globalCompositeOperation="source-atop";      // 街あかりを少し沈める暗幕（跡の中だけ）
       const ov=ctx.createLinearGradient(0,0,0,H);
-      ov.addColorStop(0,"rgba(6,5,8,.30)"); ov.addColorStop(.32,"rgba(6,5,8,0)"); ov.addColorStop(1,"rgba(6,5,8,.5)");
+      ov.addColorStop(0,"rgba(6,5,8,.5)"); ov.addColorStop(.4,"rgba(6,5,8,.24)"); ov.addColorStop(1,"rgba(6,5,8,.6)");
       ctx.fillStyle=ov; ctx.fillRect(0,0,W,H);
     }
     ctx.globalCompositeOperation="source-over";
