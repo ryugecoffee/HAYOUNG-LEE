@@ -192,6 +192,8 @@
   .sound-toggle svg{width:18px;height:18px;display:block}
   .sound-toggle .on-wave{opacity:0}
   .sound-toggle.on .on-wave{opacity:1}
+  .sound-toggle .off-slash{opacity:1}      /* OFF時はミュートの×を表示 */
+  .sound-toggle.on .off-slash{opacity:0}
   .sound-toggle.on{color:var(--gold-bright)}
 
   /* scroll cue */
@@ -448,9 +450,10 @@
 
 <!-- サウンドON/OFF（弦の音・アイコンのみ）。クリックで有効化（自動再生制限のため） -->
 <button class="sound-toggle" id="soundToggle" aria-pressed="false" aria-label="Toggle sound" title="Sound">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
     <path d="M4 9v6h4l5 4V5L8 9H4z"/>
     <g class="on-wave"><path d="M16 9a4 4 0 0 1 0 6"/><path d="M18.5 7a7 7 0 0 1 0 10"/></g>
+    <g class="off-slash"><line x1="16" y1="9.5" x2="21" y2="14.5"/><line x1="21" y1="9.5" x2="16" y2="14.5"/></g>
   </svg>
 </button>
 
@@ -891,7 +894,7 @@ const Strings = (function(){
   }
   function vibrate(i, vel){
     ensureVib(); if(!vibLayer) return;
-    vibState[i]={ t0:performance.now(), amp:(reduce?0:7+Math.min(13,(vel||0.4)*13)), e:endpoints(i) };
+    vibState[i]={ t0:performance.now(), amp:(reduce?0:4+Math.min(7,(vel||0.4)*7)), e:endpoints(i) };
     if(!vibRAF) vibRAF=requestAnimationFrame(vibTick);
   }
   function vibTick(now){
