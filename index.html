@@ -124,14 +124,16 @@
     filter:blur(6px);}
   .guitar-stage{
     /* ==== 植物版ギターの位置合わせ（画像を見ながらここだけ調整すればOK）====
-       --vine-scale     : 植物版の拡大率（1で等倍）
+       --vine-scale-x   : 植物版の横倍率（1で等倍）
+       --vine-scale-y   : 植物版の縦倍率（首〜ヘッドの高さ合わせ）
        --vine-offset-x  : 植物版の横ずれ補正（右+ / 左-）
        --vine-offset-y  : 植物版の縦ずれ補正（下+ / 上-）
        --mask-radius    : カーソル円の半径（px）
     ============================================================ */
-    --vine-scale: 1.06;
+    --vine-scale-x: 1.0;   /* 植物版の横倍率 */
+    --vine-scale-y: 1.24;  /* 植物版の縦倍率（首〜ヘッドの高さ合わせ用） */
     --vine-offset-x: 0px;
-    --vine-offset-y: 26px;
+    --vine-offset-y: 0px;
     --mask-radius: 160px;
     position:relative;
     height:clamp(360px,76vh,820px);
@@ -156,8 +158,11 @@
   }
   /* 植物版だけ位置微調整を適用（マスクは親に掛かるのでカーソル追従はズレない） */
   .guitar-fantasy .guitar-img{
-    transform:translate(var(--vine-offset-x,0px),var(--vine-offset-y,0px)) scale(var(--vine-scale,1));
+    transform:translate(var(--vine-offset-x,0px),var(--vine-offset-y,0px))
+              scale(var(--vine-scale-x,1),var(--vine-scale-y,1));
     transform-origin:center center;
+    /* 蔦を目立たせる：金色を明るく・鮮やかに＋淡いグロー */
+    filter:brightness(1.4) saturate(1.18) drop-shadow(0 0 6px rgba(232,192,92,.5));
   }
   @media (max-width:640px){
     .guitar-stage{ height:auto; width:min(80vw,340px); }
