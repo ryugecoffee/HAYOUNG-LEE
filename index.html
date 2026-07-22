@@ -159,10 +159,17 @@
 
   /* guitar stage */
   .stage-wrap{position:relative;z-index:4;width:100%;display:flex;justify-content:center}
-  .stage-wrap::before{content:"";position:absolute;top:48%;left:50%;transform:translate(-50%,-50%);
-    width:min(60vh,720px);height:min(72vh,860px);pointer-events:none;z-index:-1;
-    background:radial-gradient(closest-side, rgba(120,78,26,.42), rgba(90,58,20,.14) 55%, transparent 72%);
-    filter:blur(6px);}
+  /* ステージのスポットライト：ギター後ろの暖色の光溜まり */
+  .stage-wrap::before{content:"";position:absolute;top:52%;left:50%;transform:translate(-50%,-50%);
+    width:min(58vh,660px);height:min(78vh,940px);pointer-events:none;z-index:-1;
+    background:radial-gradient(closest-side, rgba(210,150,70,.55), rgba(150,96,40,.22) 48%, rgba(90,58,20,.06) 70%, transparent 80%);
+    filter:blur(8px);}
+  /* 上からのスポット光芒（コーン状に降り注ぐ光） */
+  .stage-wrap::after{content:"";position:absolute;top:-6%;left:50%;transform:translateX(-50%);
+    width:min(42vh,460px);height:118%;pointer-events:none;z-index:-1;
+    background:linear-gradient(180deg, rgba(255,224,158,.18) 0%, rgba(255,210,140,.08) 42%, rgba(255,200,130,0) 78%);
+    clip-path:polygon(34% 0%, 66% 0%, 90% 100%, 10% 100%);
+    filter:blur(16px);}
   .guitar-stage{
     /* ==== 植物版ギターの位置合わせ（画像を見ながらここだけ調整すればOK）====
        --vine-scale-x   : 植物版の横倍率（1で等倍）
@@ -175,12 +182,13 @@
     --vine-scale-y: 1.25;  /* 植物版の縦倍率（首〜ヘッドの高さ合わせ用） */
     --vine-offset-x: 0px;
     --vine-offset-y: 0px;
-    --mask-radius: 58px;
+    --mask-radius: 72px;
     position:relative;
     height:clamp(360px,76vh,820px);
     aspect-ratio:685/1793;          /* = 通常版ギター画像の縦横比 */
     width:auto;margin:0 auto;
-    filter:drop-shadow(0 40px 60px rgba(0,0,0,.6));
+    /* ライトアップ：影＋暖色の柔らかい縁取りの光 */
+    filter:drop-shadow(0 40px 60px rgba(0,0,0,.6)) drop-shadow(0 0 34px rgba(255,198,120,.20));
     touch-action:pan-y;             /* 縦スクロールを妨げない */
   }
   .guitar-layer{position:absolute;inset:0;width:100%;height:100%}
@@ -1257,7 +1265,7 @@ const Magpie = (function(){
   const bg=document.getElementById("heroBg");
   if(!hero||!bg||!CONFIG.assets.heroBg) return;
   const reduce=reduceMotion;
-  const R=58;                                    // 蔦の円(--mask-radius)と同じにして1つに見せる
+  const R=72;                                    // 蔦の円(--mask-radius)と同じにして1つに見せる
   const st={x:0,y:0,tx:0,ty:0,r:0,tr:0,seeded:false,raf:0};
   function apply(){
     bg.style.setProperty("--bx", st.x.toFixed(1)+"px");
@@ -1267,7 +1275,7 @@ const Magpie = (function(){
   function tick(){
     const e=reduce?1:0.16;
     st.x+=(st.tx-st.x)*e; st.y+=(st.ty-st.y)*e;
-    const re=reduce?1:(st.tr>0?0.14:0.06);       // 現れは速く / 黒へ戻るのは緩やか
+    const re=reduce?1:(st.tr>0?0.14:0.032);      // 現れは速く / 黒へ戻るのはゆっくり（少し長く残す）
     st.r+=(st.tr-st.r)*re;
     apply();
     if(Math.abs(st.r-st.tr)>0.5||Math.abs(st.x-st.tx)>0.5||Math.abs(st.y-st.ty)>0.5||st.tr>0)
