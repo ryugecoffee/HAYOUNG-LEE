@@ -175,7 +175,7 @@
     --vine-scale-y: 1.25;  /* 植物版の縦倍率（首〜ヘッドの高さ合わせ用） */
     --vine-offset-x: 0px;
     --vine-offset-y: 0px;
-    --mask-radius: 80px;
+    --mask-radius: 58px;
     position:relative;
     height:clamp(360px,76vh,820px);
     aspect-ratio:685/1793;          /* = 通常版ギター画像の縦横比 */
@@ -1221,13 +1221,7 @@ const Magpie = (function(){
     s.tx = p.x; s.ty = p.y;
     if(!s.seeded){ s.x = p.x; s.y = p.y; s.seeded = true; }  // 初回はワープさせずその場で開く
     if(reduce){ s.x = p.x; s.y = p.y; }
-    // 弦の音: ステージ内の相対比率で弦のまたぎを判定
-    const now = performance.now();
-    const dt = Math.max(1, now-lastT);
-    const speed = Math.hypot(clientX-lastCX, clientY-lastCY)/dt*16;
-    lastCX=clientX; lastCY=clientY; lastT=now;
-    Particles.emit(p.x, p.y, now);   // 光の粒・花びら
-    Flowers.bloom(p.x, p.y, now, speed); // 蔦から花が咲く（カササギは無効化）
+    // シンプルに蔦のマスクだけ（花・光の粒・カササギは無効化）
     ensure();
   }
   function leave(){ s.active = false; s.tr = 0; s.seeded = false; ensure(); }
