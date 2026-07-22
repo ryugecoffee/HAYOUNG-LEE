@@ -492,14 +492,6 @@
   © <span id="year"></span> Hayoung Lee · Classical Guitarist
 </footer>
 
-<!-- サウンドON/OFF（弦の音・アイコンのみ）。クリックで有効化（自動再生制限のため） -->
-<button class="sound-toggle" id="soundToggle" aria-pressed="false" aria-label="Toggle sound" title="Sound">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
-    <path d="M4 9v6h4l5 4V5L8 9H4z"/>
-    <g class="on-wave"><path d="M16 9a4 4 0 0 1 0 6"/><path d="M18.5 7a7 7 0 0 1 0 10"/></g>
-    <g class="off-slash"><line x1="16" y1="9.5" x2="21" y2="14.5"/><line x1="21" y1="9.5" x2="16" y2="14.5"/></g>
-  </svg>
-</button>
 
 <script>
 /* =========================================================================
@@ -1234,12 +1226,11 @@ const Magpie = (function(){
     const dt = Math.max(1, now-lastT);
     const speed = Math.hypot(clientX-lastCX, clientY-lastCY)/dt*16;
     lastCX=clientX; lastCY=clientY; lastT=now;
-    Strings.trace(p.x/p.w, p.y/p.h, speed);
     Particles.emit(p.x, p.y, now);   // 光の粒・花びら
     Flowers.bloom(p.x, p.y, now, speed); // 蔦から花が咲く（カササギは無効化）
     ensure();
   }
-  function leave(){ s.active = false; s.tr = 0; s.seeded = false; Strings.reset(); ensure(); }
+  function leave(){ s.active = false; s.tr = 0; s.seeded = false; ensure(); }
 
   /* ---- PC: pointer イベント（マウスのみ） ---- */
   stage.addEventListener("pointerenter", e=>{ if(e.pointerType==="mouse"){ enter(); move(e.clientX,e.clientY); } });
