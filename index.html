@@ -173,7 +173,7 @@
     --mask-radius: 72px;
     position:relative;
     height:clamp(440px,90vh,1000px);   /* 主役として大きく（約+18〜30%） */
-    aspect-ratio:685/1793;          /* = 通常版ギター画像の縦横比 */
+    aspect-ratio:742/1537;          /* = 植物ギター画像の縦横比 */
     width:auto;margin:0 auto;
     /* ライトアップ：影＋暖色の柔らかいグロー＋輪郭に“ごく弱い冷たいリムライト” */
     filter:
@@ -500,8 +500,8 @@
    ========================================================================= */
 const CONFIG = {
   assets:{
-    guitarNormal:"assets/guitar-normal.png", // 通常版ギター（背景透過PNG）
-    guitarFantasy:"assets/guitar-vine.png",  // 植物版ギター（背景透過PNG・マスクで表示）
+    guitarNormal:"assets/guitar-plant.png",  // 主役：植物だけで形成された植物ギター（常時表示）
+    guitarFantasy:"",                        // カーソル演出用（後付け）。空なら非表示
     magpie:"assets/magpie.png",  // カササギ（背景透過PNG）
     heroBg:"assets/alicante.jpg",// トップ背景（アリカンテの夜景）
     portrait:"",     // 例: "assets/hayoung.webp"
@@ -749,8 +749,9 @@ function setLayer(el, imgPath, svgFn, alt){
   if(imgPath){ el.innerHTML = `<img class="guitar-img" src="${imgPath}" alt="${a}"${deco} draggable="false" loading="eager">`; }
   else{ el.innerHTML = svgFn(); }
 }
-setLayer($("#gNormal"),  CONFIG.assets.guitarNormal,  guitarNormalSVG,  "Classical guitar");
-setLayer($("#gFantasy"), CONFIG.assets.guitarFantasy, guitarFantasySVG, ""); // 装飾扱い
+setLayer($("#gNormal"),  CONFIG.assets.guitarNormal,  guitarNormalSVG,  "A classical guitar formed entirely of living vines and roots");
+if(CONFIG.assets.guitarFantasy){ setLayer($("#gFantasy"), CONFIG.assets.guitarFantasy, guitarFantasySVG, ""); }
+else { $("#gFantasy").innerHTML = ""; }   // カーソル演出は後付け（今は非表示）
 
 /* portrait */
 if(CONFIG.assets.portrait){ $("#portrait").innerHTML=`<img src="${CONFIG.assets.portrait}" alt="Hayoung Lee" loading="lazy">`; }
