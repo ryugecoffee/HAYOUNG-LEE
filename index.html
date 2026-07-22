@@ -465,7 +465,7 @@ const CONFIG = {
   assets:{
     guitarNormal:"assets/guitar-normal.png", // 通常版ギター（背景透過PNG）
     guitarFantasy:"assets/guitar-vine.png",  // 植物版ギター（背景透過PNG・マスクで表示）
-    magpie:"",       // 例: "assets/magpie.png"
+    magpie:"assets/magpie.png",  // カササギ（背景透過PNG）
     portrait:"",     // 例: "assets/hayoung.webp"
   },
   audio:{
@@ -1062,16 +1062,71 @@ const Flowers = (function(){
     anim.onfinish=()=>el.remove();
   }
   function bloom(x,y,now,speed){
-    if(reduce) return;
+    if(reduce) return false;
     const gap = 360;                               // 咲く最短間隔
-    if(now-last < gap) return;
+    if(now-last < gap) return false;
     // ゆっくり（linger）ほど咲きやすい
     const prob = (speed||0) < 6 ? 0.55 : 0.12;
-    if(Math.random() > prob) return;
+    if(Math.random() > prob) return false;
     last=now;
     bloomAt(x+(Math.random()*2-1)*8, y+(Math.random()*2-1)*8);
+    return true;
   }
   return { bloom };
+})();
+
+/* =========================================================================
+   Magpie — 目覚めが高まると、カササギがふっと横切って舞う（スペインと韓国の象徴）
+   ・花が数輪咲くと出現（クールダウンあり＝特別な瞬間）
+   ・prefers-reduced-motion では無効
+   ========================================================================= */
+const Magpie = (function(){
+  const reduce = reduceMotion;
+  let layer=null, count=0, lastFly=-99999, flying=false;
+  const NEED=3, COOLDOWN=14000;                    // 3輪咲くごと・14秒間隔
+  function ensure(){
+    if(layer) return layer;
+    const stage=$("#stage"); if(!stage) return null;
+    const d=document.createElement("div");
+    Object.assign(d.style,{position:"absolute",inset:"0",pointerEvents:"none",overflow:"visible",zIndex:"8"});
+    stage.appendChild(d); layer=d; return d;
+  }
+  function fly(){
+    const L=ensure(); if(!L || !CONFIG.assets.magpie) return;
+    const stage=$("#stage"); const r=stage.getBoundingClientRect(); const W=r.width, H=r.height;
+    flying=true;
+    const img=document.createElement("img");
+    img.src=CONFIG.assets.magpie; img.alt=""; img.setAttribute("aria-hidden","true"); img.draggable=false;
+    const w=W*0.56;
+    Object.assign(img.style,{position:"absolute",left:"0",top:"0",width:w+"px",height:"auto",
+      pointerEvents:"none",willChange:"transform,opacity",opacity:"0",
+      filter:"drop-shadow(0 12px 20px rgba(0,0,0,.55))"});
+    L.appendChild(img);
+    // 右上オフスクリーン → 左へ弧を描いて横切る（くちばしが左＝進行方向）
+    const x0=W*1.06, x1=-w*0.95, y0=H*0.10, y1=H*0.48;
+    const N=26, frames=[];
+    for(let i=0;i<=N;i++){
+      const t=i/N;
+      const x=x0+(x1-x0)*t;
+      const arc=-Math.sin(Math.PI*t)*H*0.12;            // 山なりの弧
+      const wob=Math.sin(t*Math.PI*2*3)*H*0.018;        // 羽ばたきの上下揺れ
+      const y=y0+(y1-y0)*t+arc+wob;
+      const rot=-5+Math.sin(t*Math.PI*2*3)*4;
+      let op=1; if(t<0.12) op=t/0.12; else if(t>0.86) op=(1-t)/0.14;
+      frames.push({ offset:+t.toFixed(3), opacity:op.toFixed(2),
+        transform:`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) rotate(${rot.toFixed(1)}deg)` });
+    }
+    const anim=img.animate(frames,{duration:3400, easing:"linear", fill:"forwards"});
+    anim.onfinish=()=>{ img.remove(); flying=false; };
+  }
+  function awaken(now){
+    if(reduce) return;
+    count++;
+    if(count>=NEED && !flying && (now-lastFly)>COOLDOWN){
+      count=0; lastFly=now; fly();
+    }
+  }
+  return { awaken };
 })();
 
 /* =========================================================================
@@ -1136,7 +1191,7 @@ const Flowers = (function(){
     lastCX=clientX; lastCY=clientY; lastT=now;
     Strings.trace(p.x/p.w, p.y/p.h, speed);
     Particles.emit(p.x, p.y, now);   // 光の粒・花びら
-    Flowers.bloom(p.x, p.y, now, speed); // 蔦から花が咲く
+    if(Flowers.bloom(p.x, p.y, now, speed)) Magpie.awaken(now); // 花→目覚め→カササギ
     ensure();
   }
   function leave(){ s.active = false; s.tr = 0; s.seeded = false; Strings.reset(); ensure(); }
