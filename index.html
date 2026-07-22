@@ -180,15 +180,16 @@
 
   /* sound toggle */
   .sound-toggle{
-    position:fixed;right:18px;bottom:18px;z-index:60;
-    display:flex;align-items:center;gap:8px;
+    position:fixed;right:20px;bottom:20px;z-index:60;
+    display:flex;align-items:center;justify-content:center;
+    width:42px;height:42px;
     background:rgba(20,13,7,.7);backdrop-filter:blur(6px);
-    border:1px solid var(--line);border-radius:100px;padding:8px 14px 8px 10px;
-    color:var(--ink-soft);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
-    cursor:pointer;transition:color .3s,border-color .3s;
+    border:1px solid var(--line);border-radius:50%;padding:0;
+    color:var(--ink-soft);
+    cursor:pointer;transition:color .3s,border-color .3s,background .3s;
   }
   .sound-toggle:hover{color:var(--ink);border-color:rgba(201,162,74,.5)}
-  .sound-toggle svg{width:16px;height:16px;display:block}
+  .sound-toggle svg{width:18px;height:18px;display:block}
   .sound-toggle .on-wave{opacity:0}
   .sound-toggle.on .on-wave{opacity:1}
   .sound-toggle.on{color:var(--gold-bright)}
@@ -445,13 +446,12 @@
   © <span id="year"></span> Hayoung Lee · Classical Guitarist
 </footer>
 
-<!-- サウンドON/OFF（弦の音）。クリックで有効化（ブラウザの自動再生制限のため） -->
-<button class="sound-toggle" id="soundToggle" aria-pressed="false" aria-label="Toggle sound">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+<!-- サウンドON/OFF（弦の音・アイコンのみ）。クリックで有効化（自動再生制限のため） -->
+<button class="sound-toggle" id="soundToggle" aria-pressed="false" aria-label="Toggle sound" title="Sound">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
     <path d="M4 9v6h4l5 4V5L8 9H4z"/>
     <g class="on-wave"><path d="M16 9a4 4 0 0 1 0 6"/><path d="M18.5 7a7 7 0 0 1 0 10"/></g>
   </svg>
-  <span id="soundLabel" data-i18n="sound.off">Sound Off</span>
 </button>
 
 <script>
@@ -863,17 +863,63 @@ const Strings = (function(){
     const half=STR.halfNut+(STR.halfBridge-STR.halfNut)*t;
     return STR.centerX + ((i-2.5)/2.5)*half;   // i=0..5 → -1..1
   }
+  /* ---- 弦の振動（視覚）: 弾いた弦がしなって揺れる。音のON/OFFに関わらず表示 ---- */
+  const VB=382, VH=1000;                     // オーバーレイSVGのviewBox（ステージ比 0.382 と一致）
+  let vibLayer=null; const vibPath=[], vibState=new Array(6).fill(null); let vibRAF=0;
+  function endpoints(i){
+    return { x1:stringX(i,STR.nutY)*VB, y1:STR.nutY*VH,
+             x2:stringX(i,STR.bridgeY)*VB, y2:STR.bridgeY*VH };
+  }
+  function ensureVib(){
+    if(vibLayer) return;
+    const stage=$("#stage"); if(!stage) return;
+    const NS="http://www.w3.org/2000/svg";
+    const svg=document.createElementNS(NS,"svg");
+    svg.setAttribute("viewBox",`0 0 ${VB} ${VH}`);
+    svg.setAttribute("preserveAspectRatio","xMidYMid meet");
+    Object.assign(svg.style,{position:"absolute",inset:"0",width:"100%",height:"100%",pointerEvents:"none",zIndex:"6",overflow:"visible"});
+    for(let i=0;i<6;i++){
+      const p=document.createElementNS(NS,"path");
+      p.setAttribute("fill","none");
+      p.setAttribute("stroke","rgba(255,240,200,0)");
+      p.setAttribute("stroke-width",(1.7+i*0.22).toFixed(2)); // 低音弦ほど太く
+      p.style.filter="drop-shadow(0 0 2px rgba(255,225,150,.7))";
+      p.setAttribute("stroke-linecap","round");
+      svg.appendChild(p); vibPath.push(p);
+    }
+    stage.appendChild(svg); vibLayer=svg;
+  }
+  function vibrate(i, vel){
+    ensureVib(); if(!vibLayer) return;
+    vibState[i]={ t0:performance.now(), amp:(reduce?0:7+Math.min(13,(vel||0.4)*13)), e:endpoints(i) };
+    if(!vibRAF) vibRAF=requestAnimationFrame(vibTick);
+  }
+  function vibTick(now){
+    let any=false;
+    for(let i=0;i<6;i++){
+      const st=vibState[i]; if(!st) continue;
+      const dur=380, dt=now-st.t0;
+      if(dt>=dur){ vibState[i]=null; vibPath[i].setAttribute("d",""); vibPath[i].setAttribute("stroke","rgba(245,230,185,0)"); continue; }
+      any=true;
+      const k=dt/dur, decay=Math.pow(1-k,1.4);
+      const off=st.amp*decay*Math.sin(k*Math.PI*2*7);   // ~7回しなる
+      const {x1,y1,x2,y2}=st.e, mx=(x1+x2)/2+off, my=(y1+y2)/2;
+      vibPath[i].setAttribute("d",`M${x1.toFixed(1)},${y1.toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}`);
+      vibPath[i].setAttribute("stroke",`rgba(255,240,200,${(0.9*decay).toFixed(3)})`);
+    }
+    vibRAF = any ? requestAnimationFrame(vibTick) : 0;
+  }
+
   let prevFx=null, prevFy=null;
   function trace(fx, fy, speed){
-    if(!A.enabled) { prevFx=fx; prevFy=fy; return; }
     if(fy<STR.nutY-0.02 || fy>STR.bridgeY+0.02){ prevFx=fx; prevFy=fy; return; }
     if(prevFx!=null){
       for(let i=0;i<6;i++){
         const sx=stringX(i,fy);
-        const crossed=(prevFx-sx)*(fx-sx) < 0;               // 弦をまたいだ
-        const near=Math.abs(fx-sx) < STR.hit && Math.abs(prevFx-sx) < STR.hit;
-        if(crossed || near){
-          pluck(i, 0.32 + Math.min(0.6, (speed||0)/22));
+        if((prevFx-sx)*(fx-sx) < 0){                          // 弦をまたいだ
+          const vel=0.32 + Math.min(0.6, (speed||0)/22);
+          vibrate(i, vel);           // 揺れは常に表示
+          if(A.enabled) pluck(i, vel); // 音はON時のみ
         }
       }
     }
@@ -883,7 +929,7 @@ const Strings = (function(){
 
   // サウンドボタン
   const btn=$("#soundToggle");
-  function label(){ const t=I18N[currentLang]||I18N.en; $("#soundLabel").textContent = A.enabled? t["sound.on"] : t["sound.off"]; }
+  function label(){ const el=$("#soundLabel"); if(!el) return; const t=I18N[currentLang]||I18N.en; el.textContent = A.enabled? t["sound.on"] : t["sound.off"]; }
   if(btn){
     btn.addEventListener("click", async ()=>{
       await init();
