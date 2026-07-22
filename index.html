@@ -99,6 +99,32 @@
     display:grid;grid-template-columns:1fr;align-items:center;justify-items:center;
     padding:96px 16px 40px;
   }
+  /* トップ背景：幻想的な光の空気感（最背面 z1・ギターと文字の後ろ） */
+  .atmos{position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none}
+  .atmos .glow{position:absolute;border-radius:50%;filter:blur(72px);mix-blend-mode:screen;will-change:transform}
+  .atmos .g1{width:62vmin;height:62vmin;left:32%;top:10%;
+    background:radial-gradient(circle,rgba(168,104,36,.55),rgba(168,104,36,0) 66%);animation:drift1 38s ease-in-out infinite}
+  .atmos .g2{width:48vmin;height:48vmin;left:4%;top:42%;
+    background:radial-gradient(circle,rgba(150,96,72,.34),rgba(150,96,72,0) 70%);animation:drift2 46s ease-in-out infinite}
+  .atmos .g3{width:46vmin;height:46vmin;left:60%;top:54%;
+    background:radial-gradient(circle,rgba(56,116,116,.20),rgba(56,116,116,0) 72%);animation:drift3 42s ease-in-out infinite}
+  .atmos .mote{position:absolute;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,226,152,.95),rgba(255,208,128,.35) 45%,transparent 72%);
+    opacity:0;will-change:transform,opacity;animation:moteFloat var(--dur,12s) linear var(--delay,0s) infinite}
+  @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-5%,6%) scale(1.14)}}
+  @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(6%,-4%) scale(1.10)}}
+  @keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-4%,-5%) scale(1.16)}}
+  @keyframes moteFloat{
+    0%{opacity:0;transform:translate3d(0,12px,0)}
+    12%{opacity:var(--op,.7)}
+    50%{transform:translate3d(var(--sx,8px),-46px,0)}
+    88%{opacity:var(--op,.7)}
+    100%{opacity:0;transform:translate3d(0,-96px,0)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .atmos .glow{animation:none}
+    .atmos .mote{animation:none;opacity:.22}
+  }
   .hero-copy{
     position:absolute;left:clamp(18px,6vw,80px);top:50%;transform:translateY(-50%);
     z-index:6;max-width:min(38vw,340px);pointer-events:none;
@@ -342,6 +368,10 @@
 
 <!-- ===================== HERO ===================== -->
 <section class="hero" id="home">
+  <!-- トップ最背面：幻想的な光の空気感（暖色の光＋金の塵） -->
+  <div class="atmos" id="atmos" aria-hidden="true">
+    <span class="glow g1"></span><span class="glow g2"></span><span class="glow g3"></span>
+  </div>
   <div class="hero-copy">
     <div class="eyebrow" data-i18n="hero.eyebrow">Classical Guitarist</div>
     <h1>HAYOUNG<br>LEE</h1>
@@ -1191,7 +1221,7 @@ const Magpie = (function(){
     lastCX=clientX; lastCY=clientY; lastT=now;
     Strings.trace(p.x/p.w, p.y/p.h, speed);
     Particles.emit(p.x, p.y, now);   // 光の粒・花びら
-    if(Flowers.bloom(p.x, p.y, now, speed)) Magpie.awaken(now); // 花→目覚め→カササギ
+    Flowers.bloom(p.x, p.y, now, speed); // 蔦から花が咲く（カササギは無効化）
     ensure();
   }
   function leave(){ s.active = false; s.tr = 0; s.seeded = false; Strings.reset(); ensure(); }
@@ -1215,6 +1245,28 @@ const Magpie = (function(){
   stage.addEventListener("touchend", ()=>{ if(mode==="trace") leave(); }, {passive:true});
 
   apply();  // 初期状態を確定（--mask-r:0 → 植物版は完全に非表示）
+})();
+
+/* =========================================================================
+   Atmosphere — トップ背景に金の塵をゆっくり漂わせる（幻想的な光の空気感）
+   ========================================================================= */
+(function Atmosphere(){
+  const host=document.getElementById("atmos"); if(!host) return;
+  if(reduceMotion) return;                       // 動きは止める（光のみ）
+  const N=30;
+  for(let i=0;i<N;i++){
+    const m=document.createElement("span");
+    m.className="mote";
+    const sz=(2+Math.random()*3.4).toFixed(1);
+    m.style.width=sz+"px"; m.style.height=sz+"px";
+    m.style.left=(Math.random()*100).toFixed(2)+"%";
+    m.style.top=(Math.random()*100).toFixed(2)+"%";
+    m.style.setProperty("--dur",(9+Math.random()*8).toFixed(1)+"s");
+    m.style.setProperty("--delay",(-Math.random()*16).toFixed(1)+"s");
+    m.style.setProperty("--sx",((Math.random()*2-1)*20).toFixed(0)+"px");
+    m.style.setProperty("--op",(0.4+Math.random()*0.45).toFixed(2));
+    host.appendChild(m);
+  }
 })();
 
 /* boot: コンテンツ描画 + 言語適用 */
