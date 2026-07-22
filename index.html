@@ -98,15 +98,21 @@
     position:relative;min-height:100svh;min-height:100vh;
     display:grid;grid-template-columns:1fr;align-items:center;justify-items:center;
     padding:96px 16px 40px;
+    background:#06040a;              /* 最初は黒。カーソル周りだけ街が浮かぶ */
   }
-  /* トップ背景：アリカンテの夜景（最背面 z0）。暗く落として文字・ギターを前に出す */
+  /* トップ背景：アリカンテの夜景を「カーソル周りだけ」円形に浮かび上がらせる（トーチ演出）
+     初期は --bg-r:0 で完全に隠れ＝真っ黒。カーソル追従で街あかりが現れる。 */
   .hero-bg{position:absolute;inset:0;z-index:0;overflow:hidden;
-    background-position:center 42%;background-size:cover;background-repeat:no-repeat;}
-  .hero-bg::after{content:"";position:absolute;inset:0;
-    background:
-      linear-gradient(90deg, rgba(8,6,10,.95) 0%, rgba(8,6,10,.62) 28%, rgba(8,6,10,.34) 54%, rgba(8,6,10,.52) 100%),
-      linear-gradient(180deg, rgba(8,6,10,.55) 0%, rgba(8,6,10,.12) 40%, rgba(6,5,8,.86) 100%),
-      radial-gradient(70% 60% at 50% 50%, rgba(8,6,10,0) 46%, rgba(8,6,10,.42) 100%);
+    background-position:center 42%;background-size:cover;background-repeat:no-repeat;
+    filter:brightness(.96) saturate(1.02);
+    -webkit-mask-image:radial-gradient(circle var(--bg-r,0px) at var(--bx,50%) var(--by,50%),
+      #000 0%, #000 52%, rgba(0,0,0,.45) 76%, transparent 100%);
+    mask-image:radial-gradient(circle var(--bg-r,0px) at var(--bx,50%) var(--by,50%),
+      #000 0%, #000 52%, rgba(0,0,0,.45) 76%, transparent 100%);
+    will-change:mask-image;
+  }
+  .hero-bg::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg, rgba(6,5,8,.34) 0%, rgba(6,5,8,0) 32%, rgba(6,5,8,.5) 100%);
   }
   /* 金の塵レイヤー（アリカンテの街灯りと馴染む・z1） */
   .atmos{position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none}
@@ -1254,6 +1260,49 @@ const Magpie = (function(){
   stage.addEventListener("touchend", ()=>{ if(mode==="trace") leave(); }, {passive:true});
 
   apply();  // 初期状態を確定（--mask-r:0 → 植物版は完全に非表示）
+})();
+
+/* =========================================================================
+   HeroBackdrop — トップは真っ黒。カーソル周りだけアリカンテの街が浮かぶ（トーチ演出）
+   ・ヒーロー全体でカーソル追従（ギターのマスクとは別）
+   ・初期は完全に黒（--bg-r:0）。離脱で黒に戻る。
+   ========================================================================= */
+(function HeroBackdrop(){
+  const hero=document.getElementById("home");
+  const bg=document.getElementById("heroBg");
+  if(!hero||!bg||!CONFIG.assets.heroBg) return;
+  const reduce=reduceMotion;
+  const R=340;                                   // 街あかりが見える円の半径(px)
+  const st={x:0,y:0,tx:0,ty:0,r:0,tr:0,seeded:false,raf:0};
+  function apply(){
+    bg.style.setProperty("--bx", st.x.toFixed(1)+"px");
+    bg.style.setProperty("--by", st.y.toFixed(1)+"px");
+    bg.style.setProperty("--bg-r", st.r.toFixed(1)+"px");
+  }
+  function tick(){
+    const e=reduce?1:0.16;
+    st.x+=(st.tx-st.x)*e; st.y+=(st.ty-st.y)*e;
+    const re=reduce?1:(st.tr>0?0.14:0.06);       // 現れは速く / 黒へ戻るのは緩やか
+    st.r+=(st.tr-st.r)*re;
+    apply();
+    if(Math.abs(st.r-st.tr)>0.5||Math.abs(st.x-st.tx)>0.5||Math.abs(st.y-st.ty)>0.5||st.tr>0)
+      st.raf=requestAnimationFrame(tick);
+    else{ st.raf=0; st.r=st.tr; apply(); }
+  }
+  function ensure(){ if(!st.raf) st.raf=requestAnimationFrame(tick); }
+  function toLocal(cx,cy){ const b=hero.getBoundingClientRect(); return {x:cx-b.left,y:cy-b.top}; }
+  function move(cx,cy){
+    const p=toLocal(cx,cy); st.tx=p.x; st.ty=p.y; st.tr=R;
+    if(!st.seeded){ st.x=p.x; st.y=p.y; st.seeded=true; }   // 初回はワープさせずその場で開く
+    if(reduce){ st.x=p.x; st.y=p.y; }
+    ensure();
+  }
+  function off(){ st.tr=0; st.seeded=false; ensure(); }
+  hero.addEventListener("pointermove", e=>{ if(e.pointerType!=="touch") move(e.clientX,e.clientY); });
+  hero.addEventListener("pointerleave", e=>{ if(e.pointerType!=="touch") off(); });
+  hero.addEventListener("touchmove", e=>{ const t=e.touches[0]; if(t) move(t.clientX,t.clientY); }, {passive:true});
+  hero.addEventListener("touchend", off, {passive:true});
+  apply();                                       // 初期：--bg-r:0 → 完全に黒
 })();
 
 /* =========================================================================
