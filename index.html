@@ -445,6 +445,15 @@
   © <span id="year"></span> Hayoung Lee · Classical Guitarist
 </footer>
 
+<!-- サウンドON/OFF（弦の音）。クリックで有効化（ブラウザの自動再生制限のため） -->
+<button class="sound-toggle" id="soundToggle" aria-pressed="false" aria-label="Toggle sound">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+    <path d="M4 9v6h4l5 4V5L8 9H4z"/>
+    <g class="on-wave"><path d="M16 9a4 4 0 0 1 0 6"/><path d="M18.5 7a7 7 0 0 1 0 10"/></g>
+  </svg>
+  <span id="soundLabel" data-i18n="sound.off">Sound Off</span>
+</button>
+
 <script>
 /* =========================================================================
    CONFIG — 差し替えはここだけ触ればOK
@@ -755,6 +764,7 @@ function applyLang(lang){
   });
   $$(".lang button").forEach(b=>b.classList.toggle("active", b.dataset.lang===lang));
   renderConcerts(t);
+  if(typeof Strings!=="undefined") Strings.updateLabel();
 }
 $$(".lang button").forEach(b=>b.addEventListener("click",()=>applyLang(b.dataset.lang)));
 
@@ -784,6 +794,108 @@ addEventListener("load",()=>{ if(location.hash && $(location.hash)) $(location.h
 /* reveal on scroll */
 const io=new IntersectionObserver((es)=>es.forEach(en=>{ if(en.isIntersecting){en.target.classList.add("in"); io.unobserve(en.target);} }),{threshold:.16});
 $$(".reveal").forEach(el=>io.observe(el));
+
+/* =========================================================================
+   Strings — 弦の音（なぞると弦がポロンと鳴る / Karplus-Strong 合成）
+   ・自動再生制限のためサウンドボタンのクリックで有効化
+   ・弦の位置は実画像から実測した比率（下の STR で調整可）
+   ========================================================================= */
+const Strings = (function(){
+  // 弦のジオメトリ（ステージ＝画像に対する比率）。画像を変えたらここを調整。
+  const STR = {
+    centerX: 0.502,   // 弦の中心x（0=左, 1=右）
+    nutY:    0.135,   // 弾き始め（ナット）y
+    bridgeY: 0.800,   // 弾き終わり（ブリッジ）y
+    halfNut: 0.052,   // ナット側の弦の広がり（±）
+    halfBridge: 0.086,// ブリッジ側の弦の広がり（±）
+    hit: 0.012        // 弦の当たり判定の太さ（比率）
+  };
+  // 6弦の周波数 E2 A2 D3 G3 B3 E4（左→右）
+  const FREQ = [82.41,110.00,146.83,196.00,246.94,329.63];
+
+  const A = { ctx:null, master:null, buffers:[], enabled:false, active:0 };
+  const reduce = reduceMotion;
+
+  function ir(ctx, sec=0.9, decay=3.2){
+    const n=Math.floor(ctx.sampleRate*sec), b=ctx.createBuffer(2,n,ctx.sampleRate);
+    for(let c=0;c<2;c++){ const d=b.getChannelData(c);
+      for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,decay); }
+    return b;
+  }
+  function ks(ctx, freq, dur=1.7){
+    const N=Math.max(2,Math.round(ctx.sampleRate/freq));
+    const out=ctx.createBuffer(1,Math.floor(ctx.sampleRate*dur),ctx.sampleRate);
+    const d=out.getChannelData(0), line=new Float32Array(N);
+    for(let i=0;i<N;i++) line[i]=Math.random()*2-1;
+    let idx=0; const damp=0.9966;
+    for(let i=0;i<d.length;i++){
+      const v=(line[idx]+line[(idx+1)%N])*0.5*damp;
+      d[i]=line[idx]*Math.pow(1-i/d.length,0.6);
+      line[idx]=v; idx=(idx+1)%N;
+    }
+    return out;
+  }
+  async function init(){
+    if(A.ctx) return;
+    const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+    const ctx=new AC(); A.ctx=ctx;
+    const master=ctx.createGain(); master.gain.value=0.22;
+    const conv=ctx.createConvolver(); conv.buffer=ir(ctx);
+    const wet=ctx.createGain(); wet.gain.value=0.16;
+    const dry=ctx.createGain(); dry.gain.value=0.9;
+    master.connect(dry).connect(ctx.destination);
+    master.connect(conv).connect(wet).connect(ctx.destination);
+    A.master=master;
+    A.buffers=FREQ.map(f=>ks(ctx,f));
+  }
+  function pluck(i, vel=0.5){
+    if(!A.enabled||!A.ctx||!A.buffers[i]||A.active>=6) return;
+    const src=A.ctx.createBufferSource(); src.buffer=A.buffers[i];
+    const g=A.ctx.createGain(), v=Math.max(0.12,Math.min(1,vel)), now=A.ctx.currentTime;
+    g.gain.setValueAtTime(0.0001,now);
+    g.gain.exponentialRampToValueAtTime(0.42*v+0.1, now+0.008);
+    src.connect(g).connect(A.master);
+    src.start(); A.active++;
+    src.onended=()=>{A.active=Math.max(0,A.active-1);};
+  }
+  function stringX(i, fy){
+    const t=Math.max(0,Math.min(1,(fy-STR.nutY)/(STR.bridgeY-STR.nutY)));
+    const half=STR.halfNut+(STR.halfBridge-STR.halfNut)*t;
+    return STR.centerX + ((i-2.5)/2.5)*half;   // i=0..5 → -1..1
+  }
+  let prevFx=null, prevFy=null;
+  function trace(fx, fy, speed){
+    if(!A.enabled) { prevFx=fx; prevFy=fy; return; }
+    if(fy<STR.nutY-0.02 || fy>STR.bridgeY+0.02){ prevFx=fx; prevFy=fy; return; }
+    if(prevFx!=null){
+      for(let i=0;i<6;i++){
+        const sx=stringX(i,fy);
+        const crossed=(prevFx-sx)*(fx-sx) < 0;               // 弦をまたいだ
+        const near=Math.abs(fx-sx) < STR.hit && Math.abs(prevFx-sx) < STR.hit;
+        if(crossed || near){
+          pluck(i, 0.32 + Math.min(0.6, (speed||0)/22));
+        }
+      }
+    }
+    prevFx=fx; prevFy=fy;
+  }
+  function reset(){ prevFx=prevFy=null; }
+
+  // サウンドボタン
+  const btn=$("#soundToggle");
+  function label(){ const t=I18N[currentLang]||I18N.en; $("#soundLabel").textContent = A.enabled? t["sound.on"] : t["sound.off"]; }
+  if(btn){
+    btn.addEventListener("click", async ()=>{
+      await init();
+      if(A.ctx && A.ctx.state==="suspended") await A.ctx.resume();
+      A.enabled=!A.enabled;
+      btn.classList.toggle("on", A.enabled);
+      btn.setAttribute("aria-pressed", String(A.enabled));
+      label();
+    });
+  }
+  return { trace, reset, updateLabel:label };
+})();
 
 /* =========================================================================
    GuitarReveal — カーソル追従の円形マスクで植物版ギターを見せる（マスク実装のみ）
@@ -826,22 +938,29 @@ $$(".reveal").forEach(el=>io.observe(el));
 
   function toLocal(clientX, clientY){
     const b = stage.getBoundingClientRect();
-    return { x: clientX - b.left, y: clientY - b.top };
+    return { x: clientX - b.left, y: clientY - b.top, w:b.width, h:b.height };
   }
   function enter(){
     s.active = true; s.tr = MASK_R;
     hero && hero.classList.add("touched");
     ensure();
   }
+  let lastCX=0, lastCY=0, lastT=0;
   function move(clientX, clientY){
     if(!s.active) return;
     const p = toLocal(clientX, clientY);
     s.tx = p.x; s.ty = p.y;
     if(!s.seeded){ s.x = p.x; s.y = p.y; s.seeded = true; }  // 初回はワープさせずその場で開く
     if(reduce){ s.x = p.x; s.y = p.y; }
+    // 弦の音: ステージ内の相対比率で弦のまたぎを判定
+    const now = performance.now();
+    const dt = Math.max(1, now-lastT);
+    const speed = Math.hypot(clientX-lastCX, clientY-lastCY)/dt*16;
+    lastCX=clientX; lastCY=clientY; lastT=now;
+    Strings.trace(p.x/p.w, p.y/p.h, speed);
     ensure();
   }
-  function leave(){ s.active = false; s.tr = 0; s.seeded = false; ensure(); }
+  function leave(){ s.active = false; s.tr = 0; s.seeded = false; Strings.reset(); ensure(); }
 
   /* ---- PC: pointer イベント（マウスのみ） ---- */
   stage.addEventListener("pointerenter", e=>{ if(e.pointerType==="mouse"){ enter(); move(e.clientX,e.clientY); } });
