@@ -105,11 +105,11 @@
   .hero-bg{position:absolute;inset:0;z-index:0;overflow:hidden;
     background-position:center 42%;background-size:cover;background-repeat:no-repeat;
     filter:brightness(.96) saturate(1.02);
+    opacity:0;transition:opacity .28s ease;      /* 半径0のときは確実に非表示（Safariの薄枠対策） */
     -webkit-mask-image:radial-gradient(circle var(--bg-r,0px) at var(--bx,50%) var(--by,50%),
       #000 0%, #000 52%, rgba(0,0,0,.45) 76%, transparent 100%);
     mask-image:radial-gradient(circle var(--bg-r,0px) at var(--bx,50%) var(--by,50%),
       #000 0%, #000 52%, rgba(0,0,0,.45) 76%, transparent 100%);
-    will-change:mask-image;
   }
   .hero-bg::after{content:"";position:absolute;inset:0;pointer-events:none;
     background:linear-gradient(180deg, rgba(6,5,8,.34) 0%, rgba(6,5,8,0) 32%, rgba(6,5,8,.5) 100%);
@@ -193,7 +193,7 @@
       #000 0%, #000 45%, rgba(0,0,0,.5) 70%, transparent 100%);
     mask-image:radial-gradient(circle var(--mask-r,0px) at var(--mx,50%) var(--my,50%),
       #000 0%, #000 45%, rgba(0,0,0,.5) 70%, transparent 100%);
-    will-change:mask-position,mask-image;
+    opacity:0;transition:opacity .18s ease;      /* 半径0のときは確実に非表示 */
   }
   .guitar-img{
     width:100%;height:100%;object-fit:contain;display:block;
@@ -1193,6 +1193,7 @@ const Magpie = (function(){
     fantasy.style.setProperty("--mx", s.x.toFixed(1)+"px");
     fantasy.style.setProperty("--my", s.y.toFixed(1)+"px");
     fantasy.style.setProperty("--mask-r", s.r.toFixed(1)+"px");
+    fantasy.style.opacity = s.r > 0.6 ? "1" : "0";   // 半径0付近は完全に消す（Safari対策）
   }
   function tick(){
     const e  = reduce ? 1 : EASE;
@@ -1265,6 +1266,7 @@ const Magpie = (function(){
     bg.style.setProperty("--bx", st.x.toFixed(1)+"px");
     bg.style.setProperty("--by", st.y.toFixed(1)+"px");
     bg.style.setProperty("--bg-r", st.r.toFixed(1)+"px");
+    bg.style.opacity = st.r > 0.6 ? "1" : "0";   // 半径0付近は完全に消す
   }
   function tick(){
     const e=reduce?1:0.16;
