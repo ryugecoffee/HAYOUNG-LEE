@@ -100,20 +100,9 @@
     padding:96px 16px 40px;
     background:#06040a;              /* 最初は黒。カーソル周りだけ街が浮かぶ */
   }
-  /* トップ背景：アリカンテの夜景を「カーソル周りだけ」円形に浮かび上がらせる（トーチ演出）
-     初期は --bg-r:0 で完全に隠れ＝真っ黒。カーソル追従で街あかりが現れる。 */
-  .hero-bg{position:absolute;inset:0;z-index:0;overflow:hidden;
-    background-position:center 42%;background-size:cover;background-repeat:no-repeat;
-    filter:brightness(.96) saturate(1.02);
-    opacity:0;transition:opacity .28s ease;      /* 半径0のときは確実に非表示（Safariの薄枠対策） */
-    -webkit-mask-image:radial-gradient(circle var(--bg-r,0px) at var(--bx,50%) var(--by,50%),
-      #000 0%, #000 52%, rgba(0,0,0,.45) 76%, transparent 100%);
-    mask-image:radial-gradient(circle var(--bg-r,0px) at var(--bx,50%) var(--by,50%),
-      #000 0%, #000 52%, rgba(0,0,0,.45) 76%, transparent 100%);
-  }
-  .hero-bg::after{content:"";position:absolute;inset:0;pointer-events:none;
-    background:linear-gradient(180deg, rgba(6,5,8,.34) 0%, rgba(6,5,8,0) 32%, rgba(6,5,8,.5) 100%);
-  }
+  /* トップ背景：アリカンテの夜景を「カーソルが通った跡」に残す（トレイル／canvas描画）
+     初期は真っ黒。なぞった跡に街あかりが残り、後からゆっくり黒へ戻る。 */
+  .hero-canvas{position:absolute;inset:0;z-index:0;pointer-events:none;display:block}
   /* 金の塵レイヤー（アリカンテの街灯りと馴染む・z1） */
   .atmos{position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none}
   .atmos .glow{position:absolute;border-radius:50%;filter:blur(72px);mix-blend-mode:screen;will-change:transform}
@@ -386,7 +375,7 @@
 <!-- ===================== HERO ===================== -->
 <section class="hero" id="home">
   <!-- トップ最背面：アリカンテの夜景（暗く落として敷く）＋ 金の塵 -->
-  <div class="hero-bg" id="heroBg" aria-hidden="true"></div>
+  <canvas class="hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>
   <div class="atmos" id="atmos" aria-hidden="true"></div>
   <div class="hero-copy">
     <div class="eyebrow" data-i18n="hero.eyebrow">Classical Guitarist</div>
@@ -1251,56 +1240,89 @@ const Magpie = (function(){
 })();
 
 /* =========================================================================
-   HeroBackdrop — トップは真っ黒。カーソル周りだけアリカンテの街が浮かぶ（トーチ演出）
-   ・ヒーロー全体でカーソル追従（ギターのマスクとは別）
-   ・初期は完全に黒（--bg-r:0）。離脱で黒に戻る。
+   HeroTrail — カーソルが通った跡にアリカンテの街あかりが残り、ゆっくり黒へ戻る
+   ・canvas に「跡（マスク）」を蓄積 → 毎フレーム少しずつ薄くして画像を切り抜き描画
+   ・初期は真っ黒。prefers-reduced-motion では無効。
    ========================================================================= */
-(function HeroBackdrop(){
+(function HeroTrail(){
   const hero=document.getElementById("home");
-  const bg=document.getElementById("heroBg");
-  if(!hero||!bg||!CONFIG.assets.heroBg) return;
-  const reduce=reduceMotion;
-  const R=72;                                    // 蔦の円(--mask-radius)と同じにして1つに見せる
-  const st={x:0,y:0,tx:0,ty:0,r:0,tr:0,seeded:false,raf:0};
-  function apply(){
-    bg.style.setProperty("--bx", st.x.toFixed(1)+"px");
-    bg.style.setProperty("--by", st.y.toFixed(1)+"px");
-    bg.style.setProperty("--bg-r", st.r.toFixed(1)+"px");
-    bg.style.opacity = st.r > 0.6 ? "1" : "0";   // 半径0付近は完全に消す
+  const canvas=document.getElementById("heroCanvas");
+  if(!hero||!canvas||!CONFIG.assets.heroBg || reduceMotion) return;
+  const ctx=canvas.getContext("2d");
+  const mask=document.createElement("canvas"), mctx=mask.getContext("2d");
+  const img=new Image(); let ready=false;
+  img.onload=()=>{ ready=true; };
+  img.src=CONFIG.assets.heroBg;
+
+  const BRUSH=74;          // 筆（跡）の半径 — 円の大きさ
+  const DECAY=0.020;       // 1フレームで薄くする量（小さいほど跡が長く残る）
+  let W=0,H=0,dpr=Math.min(2,window.devicePixelRatio||1);
+  let lastX=null,lastY=null, idle=999, raf=0;
+
+  function resize(){
+    const r=hero.getBoundingClientRect(); W=r.width; H=r.height;
+    canvas.width=mask.width=Math.round(W*dpr);
+    canvas.height=mask.height=Math.round(H*dpr);
+    canvas.style.width=W+"px"; canvas.style.height=H+"px";
+    ctx.setTransform(dpr,0,0,dpr,0,0); mctx.setTransform(dpr,0,0,dpr,0,0);
   }
-  function tick(){
-    const e=reduce?1:0.16;
-    st.x+=(st.tx-st.x)*e; st.y+=(st.ty-st.y)*e;
-    const re=reduce?1:(st.tr>0?0.14:0.032);      // 現れは速く / 黒へ戻るのはゆっくり（少し長く残す）
-    st.r+=(st.tr-st.r)*re;
-    apply();
-    if(Math.abs(st.r-st.tr)>0.5||Math.abs(st.x-st.tx)>0.5||Math.abs(st.y-st.ty)>0.5||st.tr>0)
-      st.raf=requestAnimationFrame(tick);
-    else{ st.raf=0; st.r=st.tr; apply(); }
+  resize(); addEventListener("resize", resize, {passive:true});
+
+  function stamp(x,y){
+    if(lastX==null){ lastX=x; lastY=y; }
+    const d=Math.hypot(x-lastX,y-lastY), steps=Math.max(1,Math.ceil(d/10));
+    mctx.globalCompositeOperation="source-over";
+    for(let i=1;i<=steps;i++){
+      const ix=lastX+(x-lastX)*i/steps, iy=lastY+(y-lastY)*i/steps;
+      const g=mctx.createRadialGradient(ix,iy,0,ix,iy,BRUSH);
+      g.addColorStop(0,"rgba(255,255,255,1)");
+      g.addColorStop(0.5,"rgba(255,255,255,1)");
+      g.addColorStop(1,"rgba(255,255,255,0)");
+      mctx.fillStyle=g; mctx.beginPath(); mctx.arc(ix,iy,BRUSH,0,6.2832); mctx.fill();
+    }
+    lastX=x; lastY=y; idle=0; ensure();
   }
-  function ensure(){ if(!st.raf) st.raf=requestAnimationFrame(tick); }
-  function toLocal(cx,cy){ const b=hero.getBoundingClientRect(); return {x:cx-b.left,y:cy-b.top}; }
-  function move(cx,cy){
-    const p=toLocal(cx,cy); st.tx=p.x; st.ty=p.y; st.tr=R;
-    if(!st.seeded){ st.x=p.x; st.y=p.y; st.seeded=true; }   // 初回はワープさせずその場で開く
-    if(reduce){ st.x=p.x; st.y=p.y; }
-    ensure();
+  function coverRect(){
+    const ir=img.width/img.height, cr=W/H;
+    if(ir>cr){ const dh=H, dw=H*ir; return [(W-dw)/2,0,dw,dh]; }
+    const dw=W, dh=W/ir; return [0,(H-dh)*0.42,dw,dh];
   }
-  function off(){ st.tr=0; st.seeded=false; ensure(); }
-  hero.addEventListener("pointermove", e=>{ if(e.pointerType!=="touch") move(e.clientX,e.clientY); });
-  hero.addEventListener("pointerleave", e=>{ if(e.pointerType!=="touch") off(); });
-  hero.addEventListener("touchmove", e=>{ const t=e.touches[0]; if(t) move(t.clientX,t.clientY); }, {passive:true});
-  hero.addEventListener("touchend", off, {passive:true});
-  apply();                                       // 初期：--bg-r:0 → 完全に黒
+  function frame(){
+    // 跡を少しずつ薄く（destination-out）
+    mctx.globalCompositeOperation="destination-out";
+    mctx.fillStyle="rgba(0,0,0,"+DECAY+")";
+    mctx.fillRect(0,0,W,H);
+    mctx.globalCompositeOperation="source-over";
+    // 合成：跡マスク → 画像を source-in で切り抜き → 暗幕
+    ctx.clearRect(0,0,W,H);
+    ctx.globalCompositeOperation="source-over";
+    ctx.drawImage(mask,0,0,W,H);
+    if(ready){
+      ctx.globalCompositeOperation="source-in";
+      const [dx,dy,dw,dh]=coverRect();
+      ctx.drawImage(img,dx,dy,dw,dh);
+      ctx.globalCompositeOperation="source-atop";      // 可読性のための暗幕（跡の中だけ）
+      const ov=ctx.createLinearGradient(0,0,0,H);
+      ov.addColorStop(0,"rgba(6,5,8,.30)"); ov.addColorStop(.32,"rgba(6,5,8,0)"); ov.addColorStop(1,"rgba(6,5,8,.5)");
+      ctx.fillStyle=ov; ctx.fillRect(0,0,W,H);
+    }
+    ctx.globalCompositeOperation="source-over";
+    idle++;
+    if(idle>320){ raf=0; ctx.clearRect(0,0,W,H); return; }  // 跡が消えたら停止
+    raf=requestAnimationFrame(frame);
+  }
+  function ensure(){ if(!raf) raf=requestAnimationFrame(frame); }
+
+  hero.addEventListener("pointermove", e=>{ if(e.pointerType==="touch") return; const r=hero.getBoundingClientRect(); stamp(e.clientX-r.left,e.clientY-r.top); });
+  hero.addEventListener("pointerleave", ()=>{ lastX=lastY=null; });
+  hero.addEventListener("touchmove", e=>{ const t=e.touches[0]; if(!t)return; const r=hero.getBoundingClientRect(); stamp(t.clientX-r.left,t.clientY-r.top); }, {passive:true});
+  hero.addEventListener("touchend", ()=>{ lastX=lastY=null; });
 })();
 
 /* =========================================================================
    Atmosphere — トップ背景に金の塵をゆっくり漂わせる（幻想的な光の空気感）
    ========================================================================= */
 (function Atmosphere(){
-  // トップ背景画像（アリカンテ）を敷く
-  const bg=document.getElementById("heroBg");
-  if(bg && CONFIG.assets.heroBg){ bg.style.backgroundImage=`url("${CONFIG.assets.heroBg}")`; }
   const host=document.getElementById("atmos"); if(!host) return;
   if(reduceMotion) return;                       // 動きは止める（光のみ）
   const N=30;
