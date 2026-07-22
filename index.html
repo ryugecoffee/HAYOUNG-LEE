@@ -1257,7 +1257,7 @@ const Magpie = (function(){
   const bg=document.getElementById("heroBg");
   if(!hero||!bg||!CONFIG.assets.heroBg) return;
   const reduce=reduceMotion;
-  const R=230;                                   // 街あかりが見える円の半径(px)
+  const R=58;                                    // 蔦の円(--mask-radius)と同じにして1つに見せる
   const st={x:0,y:0,tx:0,ty:0,r:0,tr:0,seeded:false,raf:0};
   function apply(){
     bg.style.setProperty("--bx", st.x.toFixed(1)+"px");
