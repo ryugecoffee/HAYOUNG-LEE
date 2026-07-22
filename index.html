@@ -159,17 +159,11 @@
 
   /* guitar stage */
   .stage-wrap{position:relative;z-index:4;width:100%;display:flex;justify-content:center}
-  /* ステージのスポットライト：ギター後ろの暖色の光溜まり */
-  .stage-wrap::before{content:"";position:absolute;top:52%;left:50%;transform:translate(-50%,-50%);
-    width:min(58vh,660px);height:min(78vh,940px);pointer-events:none;z-index:-1;
-    background:radial-gradient(closest-side, rgba(210,150,70,.55), rgba(150,96,40,.22) 48%, rgba(90,58,20,.06) 70%, transparent 80%);
-    filter:blur(8px);}
-  /* 上からのスポット光芒（コーン状に降り注ぐ光） */
-  .stage-wrap::after{content:"";position:absolute;top:-6%;left:50%;transform:translateX(-50%);
-    width:min(42vh,460px);height:118%;pointer-events:none;z-index:-1;
-    background:linear-gradient(180deg, rgba(255,224,158,.18) 0%, rgba(255,210,140,.08) 42%, rgba(255,200,130,0) 78%);
-    clip-path:polygon(34% 0%, 66% 0%, 90% 100%, 10% 100%);
-    filter:blur(16px);}
+  /* ギターを自然に包む暖色の光（硬い光芒はなし・柔らかいにじみのみ） */
+  .stage-wrap::before{content:"";position:absolute;top:46%;left:50%;transform:translate(-50%,-50%);
+    width:min(66vh,820px);height:min(100vh,1240px);pointer-events:none;z-index:-1;
+    background:radial-gradient(46% 40% at 50% 46%, rgba(214,150,76,.34), rgba(150,100,46,.12) 55%, transparent 78%);
+    filter:blur(26px);}
   .guitar-stage{
     /* ==== 植物版ギターの位置合わせ（画像を見ながらここだけ調整すればOK）====
        --vine-scale-x   : 植物版の横倍率（1で等倍）
